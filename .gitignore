@@ -206,6 +206,9 @@ tempCodeRunnerFile.py
 # Ruff stuff:
 .ruff_cache/
 
+# TravelOps generated demonstration data
+/synthetic-cases.json
+
 # PyPI configuration file
 .pypirc
 

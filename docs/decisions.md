@@ -155,6 +155,78 @@ demonstrated.
 
 **Revisit when:** Phase 11 tracing, external log ingestion, schema versioning, or richer context demonstrates that a dedicated observability library is justified.
 
+## D-014 — Keep the airline domain independent
+
+**Status:** Accepted
+
+**Context:** Passengers, flights, bookings, disruptions, policies, and recovery
+cases will later appear through HTTP and PostgreSQL, but their business rules
+must remain valid without either boundary.
+
+**Decision:** Define immutable Pydantic domain models under `domain/`, separate
+from FastAPI response schemas and future persistence models. Enforce local
+invariants during model construction and expose explicit domain validation for
+rules that require related objects.
+
+**Alternatives:** Reuse API schemas as domain models, design SQLAlchemy models
+early, or keep rules only in generators and tests.
+
+**Consequences:** The domain is deterministic and usable before persistence,
+but later phases must map between domain, API, and persistence representations.
+
+**Revisit when:** Repeated mapping becomes demonstrably error-prone or a domain
+concept requires behavior that Pydantic models cannot express clearly.
+
+## D-015 — Validate a versioned dataset aggregate
+
+**Status:** Accepted
+
+**Context:** Individually valid objects can still contain duplicate IDs,
+missing references, disconnected itineraries, or unrelated recovery-case
+relationships. Generated files also need an explicit compatibility contract.
+
+**Decision:** Use `SyntheticDataset` as the cross-record validation boundary.
+Require schema version, generator version, seed, deterministic timestamp, and
+provenance metadata, and reject unsupported version 1.0 inputs through normal
+Pydantic validation.
+
+**Alternatives:** Exchange unrelated JSON lists, rely on a future database for
+foreign-key validation, or infer the schema from whichever fields are present.
+
+**Consequences:** Files fail before reaching APIs or persistence and errors name
+the broken relationship. Version changes must be deliberate and loaders support
+only versions they understand.
+
+**Revisit when:** A second schema version requires migration support or datasets
+become large enough to require streaming validation.
+
+## D-016 — Generate reviewed scenarios deterministically
+
+**Status:** Accepted
+
+**Context:** Later phases need repeatable demonstrations and test cases. Purely
+random fixtures can be incoherent, while Faker or an LLM would add dependencies,
+variability, provider concerns, or global state without improving ten curated
+airline scenarios.
+
+**Decision:** Define ten reviewed scenario blueprints and generate their safe
+fictional attributes with a local `random.Random(seed)` instance. Derive all
+timestamps and identifiers deterministically, preserve collection order, encode
+one canonical UTF-8 JSON form, and expose generation and validation through a
+standard-library `argparse` CLI.
+
+**Alternatives:** Hand-maintain one large fixture, use global random functions,
+add Faker, generate records with an LLM, or expose generation first through an
+HTTP route.
+
+**Consequences:** The same seed produces identical bytes without network access
+or global-random mutation. Scenario variety is intentionally bounded and new
+stories require reviewed blueprint changes.
+
+**Revisit when:** The project needs hundreds of locale-specific profiles, a
+streaming format, or evaluation demonstrates that the fixed catalogue lacks
+important variation.
+
 ## Decision template
 
 ```markdown

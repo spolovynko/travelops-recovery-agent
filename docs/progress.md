@@ -2,10 +2,10 @@
 
 ## Current state
 
-- **Current phase:** Phase 1 — API, configuration, and logging
-- **Status:** Complete; Phase 2 not started
-- **Last completed result:** Typed FastAPI application with validated settings, liveness, OpenAPI, request correlation, and structured logs
-- **Next gate:** Review Phase 1, then begin Phase 2 only when explicitly requested
+- **Current phase:** Phase 2 — airline domain and synthetic cases
+- **Status:** Complete; Phase 3 not started
+- **Last completed result:** Typed airline domain, versioned deterministic ten-case dataset, and generation/validation CLI
+- **Next gate:** Review the Phase 2 evidence and create a checkpoint commit only after explicit approval
 
 ## Concepts confirmed in Phase 0
 
@@ -15,6 +15,18 @@
 - Build frontend versus backend, plus wheel versus source distribution
 - Tests versus linting versus formatting versus static type checking
 - Project/tool configuration versus application behavior
+
+## Concepts confirmed in Phase 2
+
+- Entities, value objects, aggregates, and invariants
+- Domain models versus API schemas and future persistence models
+- Construction-time validation versus validation requiring related objects
+- Deterministic generation, local seeded randomness, and global-state isolation
+- Reviewed realistic scenarios versus arbitrary random fixtures
+- Schema versions, provenance, stable identifiers, ordering, and serialization
+- Timezone-aware datetime comparison across different UTC offsets
+- CLI generation and validation as a boundary independent of HTTP and SQL
+- Direct Pydantic dependency declaration versus transitive availability
 
 ## Parking lot
 
@@ -84,3 +96,40 @@ Add new session entries below this line. Do not replace prior history.
 **Parked:** PostgreSQL, SQLAlchemy, Alembic, airline domain models, synthetic disruption data, operational tools, frontend code, agent frameworks, model integrations, authentication, and Docker infrastructure.
 
 **Next smallest step:** Review Phase 1 evidence and begin Phase 2 only after an explicit request.
+
+## Session 3 — 2026-08-11
+
+**Phase:** Phase 2 — airline domain and synthetic cases
+
+**Built:** Added immutable typed passengers, flights, itinerary segments,
+bookings, disruptions, policies, and recovery cases; local and aggregate
+invariants; versioned seed and provenance metadata; stable JSON loading and
+writing; a local-seed generator with ten reviewed delay, cancellation, and
+missed-connection cases; and standard-library CLI generation and validation.
+Declared Pydantic as a direct dependency while keeping FastAPI, persistence,
+and generator boundaries separate.
+
+**Verified:** Locked dependency synchronization and installed-package import;
+102 passing tests without warnings, including the Phase 1 `/health` behavior;
+Ruff lint and format checks; strict mypy over 22 source files; two CLI-generated
+seed-42 files with identical SHA-256 hashes; validated output containing 10
+cases, 10 disruptions, 13 passengers, and 20 flights; and successful wheel and
+source-distribution builds.
+
+**Concepts confirmed:** Entity and value-object identity; aggregate and
+invariant boundaries; deterministic domain enforcement; construction versus
+relationship validation; seeded randomness; realistic reviewed synthetic data;
+dataset versions and provenance; stable IDs, ordering, and bytes; timezone-aware
+datetimes; direct dependencies; and CLI boundaries.
+
+**Still unclear:** Nothing required by the Phase 2 gate. Persistence mapping and
+database seeding deliberately remain Phase 3 work.
+
+**Decisions:** [D-014 — Keep the airline domain independent](decisions.md#d-014--keep-the-airline-domain-independent); [D-015 — Validate a versioned dataset aggregate](decisions.md#d-015--validate-a-versioned-dataset-aggregate); [D-016 — Generate reviewed scenarios deterministically](decisions.md#d-016--generate-reviewed-scenarios-deterministically).
+
+**Parked:** PostgreSQL, SQLAlchemy, Alembic, repositories, persistence mapping,
+new airline API routes, operational tools, UI work, model integrations, Faker,
+LLM-generated fixtures, and Phase 3 seeding infrastructure.
+
+**Next smallest step:** Review the intended Phase 2 Git scope and create a
+checkpoint commit only after explicit approval; do not begin Phase 3 yet.

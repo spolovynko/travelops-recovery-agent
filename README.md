@@ -93,6 +93,22 @@ The core-release contract and gates are in [docs/plan.md](docs/plan.md). The adv
 - [Progress](docs/progress.md) — current phase, evidence, and session handoffs
 - [Phase notes](docs/notes/README.md) — learning-note format
 
+## Synthetic dataset commands
+
+```powershell
+# Generate ten deterministic fictional recovery cases
+uv run --locked python -m travelops_recovery_agent.data.cli generate `
+  --seed 42 `
+  --output synthetic-cases.json
+
+# Load the file and validate every object and relationship
+uv run --locked python -m travelops_recovery_agent.data.cli validate `
+  synthetic-cases.json
+```
+
 ## Current status
 
-Phase 1 is complete: the project now has a typed FastAPI application, validated settings, liveness and OpenAPI endpoints, request correlation, structured logging, and passing quality gates. Phase 2 has not started.
+Phase 2 is complete: the project now has a typed airline domain, ten
+deterministic fictional recovery cases, a versioned dataset format, CLI
+generation and validation, and passing quality gates. Database persistence
+remains Phase 3 work.
