@@ -2,10 +2,10 @@
 
 ## Current state
 
-- **Current phase:** Phase 2 — airline domain and synthetic cases
-- **Status:** Complete; Phase 3 not started
-- **Last completed result:** Typed airline domain, versioned deterministic ten-case dataset, and generation/validation CLI
-- **Next gate:** Review the Phase 2 evidence and create a checkpoint commit only after explicit approval
+- **Current phase:** Phase 3 — PostgreSQL persistence and service boundaries
+- **Status:** Complete; Phase 4 not started
+- **Last completed result:** Migrated and seeded PostgreSQL with explicit mapping, repositories, transactions, and safe database CLI workflows
+- **Next gate:** Review the intended Phase 3 Git scope and create a checkpoint commit only after explicit approval
 
 ## Concepts confirmed in Phase 0
 
@@ -28,11 +28,25 @@
 - CLI generation and validation as a boundary independent of HTTP and SQL
 - Direct Pydantic dependency declaration versus transitive availability
 
+## Concepts confirmed in Phase 3
+
+- Domain models versus persistence records versus API schemas
+- Relational tables, rows, columns, keys, constraints, nullability, and indexes
+- One-to-many, many-to-many, association-table, and normalization choices
+- SQLAlchemy declarative mapping, sessions, identity maps, and connection pools
+- Transactions, commit, rollback, atomicity, and unit-of-work boundaries
+- Repository interfaces, dependency inversion, and application services
+- Explicit domain-to-record and record-to-domain validation
+- Alembic revision history versus automatic `create_all()` behavior
+- Synchronous PostgreSQL access and the tradeoff against async SQLAlchemy
+- Real-database integration tests, isolation, migration, cleanup, and rollback
+- Deterministic controlled seeding and production-blocked reset behavior
+
 ## Parking lot
 
 - Model provider selection belongs to Phase 6.
-- LangGraph installation belongs to Phase 7.
-- PostgreSQL belongs to Phase 3.
+- LangGraph and any justified minimal LangChain integration belong to Phase 7.
+- Typed operational tools belong to Phase 4.
 - React belongs to Phase 5.
 - Context engineering through MCP are committed as the advanced track in Phases 12–20.
 - Voice and real airline integrations remain outside the committed track.
@@ -133,3 +147,39 @@ LLM-generated fixtures, and Phase 3 seeding infrastructure.
 
 **Next smallest step:** Review the intended Phase 2 Git scope and create a
 checkpoint commit only after explicit approval; do not begin Phase 3 yet.
+
+## Session 4 — 2026-08-11
+
+**Phase:** Phase 3 — PostgreSQL persistence and service boundaries
+
+**Built:** Added the PostgreSQL 18 Compose service, secret database settings,
+synchronous SQLAlchemy engine and session factory, normalized persistence
+records, an Alembic `0001` revision, explicit domain mapping, repository and
+unit-of-work implementations, transactional application services, and CLI
+commands for seed, replace, reset, counts, and complete-case retrieval.
+
+**Verified:** Connected pgAdmin to the isolated container on port 55432;
+migrated the development database; loaded all ten seed-42 recovery cases;
+demonstrated controlled repeat-seed refusal, atomic replacement, confirmed
+reset, and complete-case retrieval; passed focused unit and real-PostgreSQL
+tests for mapping, repositories, transactions, services, migrations,
+constraints, cleanup, and the CLI. The final gate passed all 153 tests without
+warnings, Ruff lint and format checks, strict mypy, package import and builds,
+Compose validation, PostgreSQL health, and a real-socket `GET /health` check.
+
+**Concepts confirmed:** ORM and relational vocabulary; normalized associations;
+typed disruption storage; keys, constraints, indexes, and timezone columns;
+sessions, identity maps, pools, transactions, atomicity, repositories,
+dependency inversion, units of work, migrations, secret URLs, deterministic
+seeding, and integration-test isolation.
+
+**Still unclear:** Nothing required by the Phase 3 learning contract.
+
+**Decisions:** [D-017 — Use synchronous SQLAlchemy with explicit mapping](decisions.md#d-017--use-synchronous-sqlalchemy-with-explicit-mapping); [D-018 — Use a normalized PostgreSQL schema with typed disruption details](decisions.md#d-018--use-a-normalized-postgresql-schema-with-typed-disruption-details); [D-019 — Let Alembic own schema history](decisions.md#d-019--let-alembic-own-schema-history); [D-020 — Place transactions around application workflows](decisions.md#d-020--place-transactions-around-application-workflows); [D-021 — Make development data management explicit and safe](decisions.md#d-021--make-development-data-management-explicit-and-safe).
+
+**Parked:** New business API routes, Phase 4 operational tools, frontend work,
+workflow checkpoints, agent frameworks, model providers, LangChain, LangGraph,
+authentication, production deployment, and real airline integrations.
+
+**Next smallest step:** Review the intended Phase 3 Git scope and create a
+checkpoint commit only after explicit approval; do not begin Phase 4 yet.

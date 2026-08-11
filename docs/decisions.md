@@ -227,6 +227,107 @@ stories require reviewed blueprint changes.
 streaming format, or evaluation demonstrates that the fixed catalogue lacks
 important variation.
 
+## D-017 — Use synchronous SQLAlchemy with explicit mapping
+
+**Status:** Accepted
+
+**Context:** Phase 3 needs PostgreSQL persistence without coupling the Phase 2
+Pydantic domain to an ORM or introducing asynchronous control flow before it is
+needed.
+
+**Decision:** Use synchronous SQLAlchemy 2.x with Psycopg. Keep declarative
+records under `persistence/` and translate through explicit mapping functions.
+
+**Alternatives:** Turn domain models into ORM models, reuse API schemas, use raw
+SQL throughout the application, or introduce async SQLAlchemy immediately.
+
+**Consequences:** Domain rules remain independently testable and transaction
+flow stays small and visible, at the cost of deliberate mapping code.
+
+**Revisit when:** Measured concurrent database load shows synchronous workers
+are a bottleneck or repeated mapping defects justify a more automated approach.
+
+## D-018 — Use a normalized PostgreSQL schema with typed disruption details
+
+**Status:** Accepted
+
+**Context:** The dataset contains relational identities and three known
+disruption variants. PostgreSQL should enforce important cross-record and
+type-specific facts rather than storing the dataset as an opaque document.
+
+**Decision:** Normalize entities and association tables. Store disruption
+variants in typed nullable columns constrained according to their discriminator.
+
+**Alternatives:** Store the complete dataset as JSONB, use one JSONB details
+column, or create one table per disruption subtype.
+
+**Consequences:** Keys and checks are inspectable and queryable, while adding a
+new disruption variant will require an explicit model and migration change.
+
+**Revisit when:** Disruption attributes become genuinely open-ended or variant
+growth makes the current constrained-column representation unwieldy.
+
+## D-019 — Let Alembic own schema history
+
+**Status:** Accepted
+
+**Context:** A database must evolve reproducibly from an empty state and later
+from existing revisions without application imports silently changing it.
+
+**Decision:** Use reviewed Alembic revisions as the only schema creation and
+evolution path. Do not call `metadata.create_all()` during startup or import.
+
+**Alternatives:** Create tables automatically from current ORM metadata, keep a
+manual SQL file, or require developers to construct tables in pgAdmin.
+
+**Consequences:** Schema changes are explicit, ordered, reversible when a safe
+downgrade exists, and testable from zero. Every model change may require a new
+reviewed migration.
+
+**Revisit when:** Never for the ownership principle; tooling may change if a
+future deployment platform requires another migration runner.
+
+## D-020 — Place transactions around application workflows
+
+**Status:** Accepted
+
+**Context:** Dataset seeding spans many related rows and must never partially
+commit. Future tools also need application behavior without arbitrary SQL access.
+
+**Decision:** Application services define transaction-sized workflows through
+an application-owned unit-of-work protocol. SQLAlchemy supplies the concrete
+unit of work and repository. Repositories flush but never commit.
+
+**Alternatives:** Commit inside each repository method, pass sessions through
+API and tool layers, use a generic CRUD repository, or rely on implicit cleanup.
+
+**Consequences:** A workflow commits or rolls back as one operation and future
+adapters depend on application contracts. The small unit-of-work abstraction is
+additional code that must remain focused.
+
+**Revisit when:** A workflow genuinely spans external systems and needs a
+different consistency strategy such as an outbox or saga.
+
+## D-021 — Make development data management explicit and safe
+
+**Status:** Accepted
+
+**Context:** Deterministic fixtures must be easy to load repeatedly without
+silently mixing datasets or allowing a reset command to erase production data.
+
+**Decision:** Refuse ordinary seed on a non-empty database. Require `--replace`
+for atomic replacement and `--confirm` for reset. Block reset in production and
+require integration URLs to name the isolated `travelops_test` database.
+
+**Alternatives:** Ignore duplicate seeds, upsert every row, reset automatically,
+or run tests against the development database.
+
+**Consequences:** Destructive intent is visible and tests clean up safely. This
+is a controlled fixture workflow rather than a general data synchronization tool.
+
+**Revisit when:** The project needs versioned reference-data upgrades or a
+production-safe administrative lifecycle.
+
 ## Decision template
 
 ```markdown

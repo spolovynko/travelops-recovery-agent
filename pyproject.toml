@@ -9,9 +9,12 @@ description = "A learning-first recovery agent for synthetic airline disruptions
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "alembic>=1,<2",
     "fastapi>=0.141.1",
+    "psycopg[binary]>=3,<4",
     "pydantic>=2.13,<3",
     "pydantic-settings>=2.15.0",
+    "sqlalchemy>=2,<3",
     "uvicorn>=0.52.1",
 ]
 
@@ -45,6 +48,9 @@ addopts = [
     "--import-mode=importlib",
 ]
 testpaths = ["tests"]
+markers = [
+    "integration: requires the isolated real PostgreSQL test database",
+]
 
 [tool.ruff]
 target-version = "py312"

@@ -65,7 +65,7 @@ Exact model and deployment providers are intentionally deferred until the applic
 | 4 | Typed read-only operational tools |
 | 5 | Visual operator dashboard without an LLM dependency |
 | 6 | Small manual model-and-tool loop |
-| 7 | Explicit LangGraph workflow with inspectable state |
+| 7 | Explicit LangGraph workflow with minimal LangChain integration |
 | 8 | Durable checkpoints and live UI progress |
 | 9 | Validated recommendations and evidence |
 | 10 | Prepare, approve, and execute rebooking safely |
@@ -106,9 +106,64 @@ uv run --locked python -m travelops_recovery_agent.data.cli validate `
   synthetic-cases.json
 ```
 
+## PostgreSQL development commands
+
+PostgreSQL runs in Docker while the Python application remains local. The
+container binds to `127.0.0.1:55432`, avoiding a desktop PostgreSQL instance on
+the default port. Supply passwords through environment variables; never place
+them in committed files or shell history.
+
+```powershell
+# Enter the database password through Windows' masked credential dialog
+$credential = Get-Credential -UserName travelops `
+  -Message "Enter the TravelOps development database password"
+$password = $credential.GetNetworkCredential().Password
+$encodedPassword = [uri]::EscapeDataString($password)
+
+$env:TRAVELOPS_POSTGRES_PASSWORD = $password
+$env:TRAVELOPS_DATABASE_URL = `
+  "postgresql+psycopg://travelops:{0}@127.0.0.1:55432/travelops" `
+  -f $encodedPassword
+$env:TRAVELOPS_ENVIRONMENT = "development"
+
+# Start PostgreSQL, wait for healthy, and apply explicit migrations
+docker compose up -d postgres
+docker compose ps
+uv run --locked alembic upgrade head
+uv run --locked alembic current
+
+# Load and inspect the canonical Phase 2 dataset
+uv run --locked python -m travelops_recovery_agent.persistence.cli seed --seed 42
+uv run --locked python -m travelops_recovery_agent.persistence.cli counts
+uv run --locked python -m travelops_recovery_agent.persistence.cli show-case CASE-0007
+
+# Normal repeat seeding is refused; replacement must be explicit
+uv run --locked python -m travelops_recovery_agent.persistence.cli seed `
+  --seed 42 --replace
+
+# Reset is restricted to development/test and requires confirmation
+uv run --locked python -m travelops_recovery_agent.persistence.cli reset --confirm
+
+# Stop the service while retaining its named data volume
+docker compose down
+```
+
+Real-database tests require a separate URL whose database name is exactly
+`travelops_test`:
+
+```powershell
+$env:TRAVELOPS_TEST_DATABASE_URL = `
+  "postgresql+psycopg://travelops:{0}@127.0.0.1:55432/travelops_test" `
+  -f $encodedPassword
+uv run --locked pytest -m integration
+```
+
+The complete explanation is in [docs/notes/phase-3.md](docs/notes/phase-3.md).
+
 ## Current status
 
-Phase 2 is complete: the project now has a typed airline domain, ten
-deterministic fictional recovery cases, a versioned dataset format, CLI
-generation and validation, and passing quality gates. Database persistence
-remains Phase 3 work.
+Phase 3 is complete. The project now migrates an empty PostgreSQL database,
+persists the deterministic dataset atomically, retrieves complete
+domain-oriented recovery cases, rejects invalid relational data, and provides
+controlled seed and reset workflows. All 153 tests pass, including the isolated
+real-PostgreSQL integration suite. Phase 4 operational tools have not started.

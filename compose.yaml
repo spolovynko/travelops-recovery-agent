@@ -1,0 +1,26 @@
+name: travelops-recovery-agent
+
+services:
+  postgres:
+    image: postgres:18.3-bookworm
+    environment:
+      POSTGRES_DB: ${TRAVELOPS_POSTGRES_DB:-travelops}
+      POSTGRES_USER: ${TRAVELOPS_POSTGRES_USER:-travelops}
+      POSTGRES_PASSWORD: ${TRAVELOPS_POSTGRES_PASSWORD:?Set TRAVELOPS_POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB",
+        ]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  postgres-data:

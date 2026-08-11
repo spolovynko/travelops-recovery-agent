@@ -13,7 +13,7 @@ The [UI specification](ui.md) maps visible operator and developer-facing UI incr
 | 4 | Tools | Tested read-only operational tools | What makes a tool safe and useful to a model? |
 | 5 | UI | Manual disruption investigation dashboard | What must users see before any agent automation exists? |
 | 6 | Manual agent | Bounded read-only tool loop | What does an agent framework normally do for us? |
-| 7 | LangGraph | Explicit stateful workflow | How do state, nodes, and edges control the agent? |
+| 7 | LangGraph and LangChain | Explicit stateful workflow with minimal model and tool adapters | How do framework integrations support a workflow without owning its rules? |
 | 8 | Durability | Resumable workflow with live UI events | How does long-running work survive interruption? |
 | 9 | Recommendation | Evidence-backed, validated recovery options | Where should model judgment stop and deterministic validation begin? |
 | 10 | Approval | Safe prepare/approve/execute workflow | How can a human retain control of a consequential action? |
@@ -65,9 +65,10 @@ The [UI specification](ui.md) maps visible operator and developer-facing UI incr
 - Adds the first model-controlled investigation while restricting it to bounded, read-only tool use.
 - Makes tool selection, stop conditions, context growth, and malformed outputs understandable before a framework manages them.
 
-### Phase 7 — LangGraph orchestration
+### Phase 7 — LangGraph orchestration and minimal LangChain integration
 
 - Replaces the manual loop with explicit state, nodes, edges, and routing that support more complex workflows.
+- Introduces only the LangChain model, message, or tool adapters that demonstrate a concrete benefit after the manual-loop baseline exists.
 - Makes execution easier to inspect, test, extend, and compare without moving business rules into the graph.
 
 ### Phase 8 — durability and live progress

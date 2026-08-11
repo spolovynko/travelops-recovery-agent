@@ -10,6 +10,7 @@ from travelops_recovery_agent.core.config import Environment, LogLevel, Settings
 def clear_travelops_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     for name in (
         "TRAVELOPS_ENVIRONMENT",
+        "TRAVELOPS_DATABASE_URL",
         "TRAVELOPS_LOG_LEVEL",
         "TRAVELOPS_SERVICE_TOKEN",
     ):
@@ -20,6 +21,7 @@ def test_settings_use_defaults() -> None:
     settings = Settings()
 
     assert settings.environment is Environment.DEVELOPMENT
+    assert settings.database_url is None
     assert settings.log_level is LogLevel.INFO
     assert settings.service_token is None
 
@@ -67,3 +69,19 @@ def test_secret_is_masked() -> None:
     assert settings.service_token is not None
     assert secret not in repr(settings)
     assert str(settings.service_token) == "**********"
+
+
+def test_database_url_loads_from_environment_and_is_masked(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    database_url = (
+        "postgresql+psycopg://travelops:development-password@127.0.0.1:55432/travelops"
+    )
+    monkeypatch.setenv("TRAVELOPS_DATABASE_URL", database_url)
+
+    settings = Settings()
+
+    assert settings.database_url is not None
+    assert settings.database_url.get_secret_value() == database_url
+    assert database_url not in repr(settings)
+    assert str(settings.database_url) == "**********"

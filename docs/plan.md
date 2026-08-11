@@ -160,7 +160,7 @@ The same seed produces the same valid dataset, and invalid itineraries are rejec
 
 - PostgreSQL development service
 - SQLAlchemy models and Alembic migrations
-- Repository interfaces and domain services
+- Repository interfaces and transactional application services
 - Seed and reset commands for local synthetic data
 - Integration tests against a real test database
 
@@ -243,7 +243,7 @@ An operator can investigate one case manually through the UI without an LLM. Ref
 
 The loop completes selected read-only cases, stops within its budget, and is testable without a live model.
 
-## Phase 7 — LangGraph orchestration
+## Phase 7 — LangGraph orchestration and minimal LangChain integration
 
 ### Ship
 
@@ -251,6 +251,8 @@ The loop completes selected read-only cases, stops within its budget, and is tes
 - Nodes for intake, reasoning, tool execution, validation, recommendation, escalation, and completion
 - Conditional edges and explicit terminal states
 - The Phase 6 behaviour reproduced through LangGraph
+- Minimal LangChain components for model, message, or tool adaptation only where
+  they reduce boundary code without hiding the workflow
 - Node and routing tests
 
 ### Learn to explain
@@ -258,11 +260,12 @@ The loop completes selected read-only cases, stops within its budget, and is tes
 - State, node, edge, reducer, command, and graph compilation
 - Workflow versus agent behaviour
 - What LangGraph adds compared with the manual loop
+- LangChain's higher-level integration role versus LangGraph's orchestration role
 - Why not every Python function should become a node
 
 ### Gate
 
-Given the same recorded model decisions and tool results, the manual loop and graph reach equivalent outcomes. The graph state is inspectable after every step.
+Given the same recorded model decisions and tool results, the manual loop and graph reach equivalent outcomes. The graph state is inspectable after every step, and any LangChain dependency remains an adapter rather than a home for business rules.
 
 ## Phase 8 — durability and live progress
 

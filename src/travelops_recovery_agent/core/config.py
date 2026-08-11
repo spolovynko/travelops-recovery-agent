@@ -30,3 +30,4 @@ class Settings(BaseSettings):
     environment: Environment = Environment.DEVELOPMENT
     log_level: LogLevel = LogLevel.INFO
     service_token: SecretStr | None = None
+    database_url: SecretStr | None = None
