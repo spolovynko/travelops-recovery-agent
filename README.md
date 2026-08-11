@@ -95,4 +95,4 @@ The core-release contract and gates are in [docs/plan.md](docs/plan.md). The adv
 
 ## Current status
 
-Phase 0 is complete: the Python package, locked development environment, quality gates, and distribution build are reproducible. Phase 1 has not started.
+Phase 1 is complete: the project now has a typed FastAPI application, validated settings, liveness and OpenAPI endpoints, request correlation, structured logging, and passing quality gates. Phase 2 has not started.

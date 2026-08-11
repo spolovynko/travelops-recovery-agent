@@ -113,6 +113,48 @@ demonstrated.
 
 **Revisit when:** The package needs compiled extensions, generated build artifacts, namespace-package behavior, or another requirement Hatchling does not serve cleanly.
 
+## D-011 — Construct the API with an application factory
+
+**Status:** Accepted
+
+**Context:** Settings, middleware, logging, and later services need explicit assembly. Constructing a global FastAPI object during import would hide configuration loading and make isolated test applications harder to create.
+
+**Decision:** Expose `create_app(settings: Settings | None = None) -> FastAPI`. Inject settings when supplied, otherwise validate them during application construction, and use Uvicorn's factory mode for real startup.
+
+**Alternatives:** Export a module-level `app`, load global settings during import, or create a separate dependency-injection framework before the application needs one.
+
+**Consequences:** Application assembly is explicit and testable with ordinary Python. Startup commands must include `--factory`, and process-level configuration belongs in or around the factory rather than module import.
+
+**Revisit when:** Application assembly gains enough independently managed services to justify a dedicated composition object or dependency container.
+
+## D-012 — Generate request IDs in middleware
+
+**Status:** Accepted
+
+**Context:** Every HTTP response and request log needs a shared correlation value, including routes added later. Concurrent asynchronous requests must not overwrite each other's value.
+
+**Decision:** Generate a UUID for every request in middleware, store it in a `ContextVar`, include it in `X-Request-ID`, and reset the context in `finally`. Do not trust caller-provided request IDs in Phase 1.
+
+**Alternatives:** Duplicate ID creation in each route, store it in a process global, use only `request.state`, or accept arbitrary IDs from clients.
+
+**Consequences:** Routes inherit correlation automatically and logging can read request-local state. The ID covers this application process only and is not an authentication, audit-integrity, or distributed-tracing mechanism.
+
+**Revisit when:** A trusted proxy or trace standard supplies validated correlation identifiers across multiple services.
+
+## D-013 — Emit application logs as JSON
+
+**Status:** Accepted
+
+**Context:** Request activity needs machine-readable fields and correlation without allowing package imports to reconfigure global logging.
+
+**Decision:** Use a small standard-library JSON formatter and explicitly configure the `travelops_recovery_agent` logger hierarchy during application construction. Record method, path, status, duration, and request ID while excluding query strings and settings values.
+
+**Alternatives:** Emit prose logs, call `logging.basicConfig()` during import, configure the root logger, or add a structured-logging dependency immediately.
+
+**Consequences:** Logs are parseable and dependency-free, and unrelated loggers remain untouched. The project owns a small formatter that may be replaced when tracing or a deployment logging platform introduces stronger requirements.
+
+**Revisit when:** Phase 11 tracing, external log ingestion, schema versioning, or richer context demonstrates that a dedicated observability library is justified.
+
 ## Decision template
 
 ```markdown
