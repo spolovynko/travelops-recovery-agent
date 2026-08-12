@@ -160,10 +160,42 @@ uv run --locked pytest -m integration
 
 The complete explanation is in [docs/notes/phase-3.md](docs/notes/phase-3.md).
 
+## Read-only operational tool commands
+
+Phase 4 tools run directly with normal Python and PostgreSQL; no model, agent
+framework, or new API route is involved. Configure `TRAVELOPS_DATABASE_URL` as
+shown above, migrate and seed the database, then run:
+
+```powershell
+# Inspect stable input, success, failure, context, and permission schemas
+uv run --locked python -m travelops_recovery_agent.tools.cli catalog
+
+# Read minimized booking and deterministic flight/policy facts
+uv run --locked python -m travelops_recovery_agent.tools.cli `
+  get-booking BKG-0001
+uv run --locked python -m travelops_recovery_agent.tools.cli `
+  get-flight-status FLT-NV101
+uv run --locked python -m travelops_recovery_agent.tools.cli `
+  get-disruption-policy --case-id CASE-0001
+
+# Generate a candidate, then validate its stored flights separately
+uv run --locked python -m travelops_recovery_agent.tools.cli `
+  search-alternative-itineraries ZRA XLC `
+  2026-01-15T11:00:00Z 2026-01-15T18:00:00Z 1
+uv run --locked python -m travelops_recovery_agent.tools.cli `
+  validate-itinerary CAND-FLT-NV101-FLT-NV102 1 `
+  FLT-NV101 FLT-NV102
+```
+
+Global options before the command can set `--actor-id`, `--correlation-id`, and
+`--timeout-seconds`. Every call grants only that tool's required permission and
+returns a typed JSON success or failure envelope with safe audit metadata. See
+[docs/notes/phase-4.md](docs/notes/phase-4.md) for the complete boundary model.
+
 ## Current status
 
-Phase 3 is complete. The project now migrates an empty PostgreSQL database,
-persists the deterministic dataset atomically, retrieves complete
-domain-oriented recovery cases, rejects invalid relational data, and provides
-controlled seed and reset workflows. All 153 tests pass, including the isolated
-real-PostgreSQL integration suite. Phase 4 operational tools have not started.
+Phase 4 is complete. Five narrow read-only tools expose minimized booking data,
+deterministic flight status and policy facts, alternative candidates, and
+structured itinerary validation. They use stable schemas, explicit permissions,
+absolute deadlines, safe errors, and audit metadata, and work directly against
+PostgreSQL without an LLM. Phase 5 frontend work has not started.

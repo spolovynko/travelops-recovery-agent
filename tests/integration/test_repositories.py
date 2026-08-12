@@ -1,10 +1,17 @@
 """Real-PostgreSQL tests for the SQLAlchemy recovery repository."""
 
+from datetime import UTC, datetime
+
 import pytest
 
 from travelops_recovery_agent.application.models import (
     CompleteRecoveryCase,
     PersistenceRecordCounts,
+)
+from travelops_recovery_agent.application.query_models import (
+    CompleteBooking,
+    FlightWithDisruptions,
+    ResolvedDisruptionPolicy,
 )
 from travelops_recovery_agent.application.repositories import RecoveryDataRepository
 from travelops_recovery_agent.data.generator import generate_dataset
@@ -38,6 +45,15 @@ def expected_complete_case(case_index: int) -> CompleteRecoveryCase:
         flights=tuple(flights_by_id[segment.flight_id] for segment in booking.segments),
         disruption=disruption,
         policy=policy,
+    )
+
+
+def expected_complete_booking(case_index: int) -> CompleteBooking:
+    complete_case = expected_complete_case(case_index)
+    return CompleteBooking(
+        booking=complete_case.booking,
+        passengers=complete_case.passengers,
+        flights=complete_case.flights,
     )
 
 
@@ -92,3 +108,107 @@ def test_repository_writes_roll_back_with_the_callers_transaction(
     with clean_session_factory() as session:
         repository = SqlAlchemyRecoveryDataRepository(session)
         assert repository.counts().is_empty()
+
+
+@pytest.mark.integration
+def test_repository_retrieves_a_complete_booking_without_persistence_records(
+    clean_session_factory: SessionFactory,
+) -> None:
+    with clean_session_factory.begin() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        repository.add_dataset(generate_dataset(seed=42))
+
+    with clean_session_factory() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        complete_booking = repository.get_complete_booking("BKG-0007")
+        missing_booking = repository.get_complete_booking("BKG-9999")
+
+    assert complete_booking == expected_complete_booking(case_index=6)
+    assert missing_booking is None
+
+
+@pytest.mark.integration
+def test_repository_retrieves_flight_with_ordered_disruption_evidence(
+    clean_session_factory: SessionFactory,
+) -> None:
+    dataset = generate_dataset(seed=42)
+    expected_flight = next(item for item in dataset.flights if item.id == "FLT-NV101")
+    expected_disruption = next(
+        item for item in dataset.disruptions if item.id == "DIS-0001"
+    )
+
+    with clean_session_factory.begin() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        repository.add_dataset(dataset)
+
+    with clean_session_factory() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        result = repository.get_flight_with_disruptions("FLT-NV101")
+        missing = repository.get_flight_with_disruptions("FLT-NV999")
+
+    assert result == FlightWithDisruptions(
+        flight=expected_flight,
+        disruptions=(expected_disruption,),
+    )
+    assert missing is None
+
+
+@pytest.mark.integration
+def test_repository_resolves_policy_by_case_or_disruption(
+    clean_session_factory: SessionFactory,
+) -> None:
+    dataset = generate_dataset(seed=42)
+    expected = ResolvedDisruptionPolicy(
+        recovery_case=dataset.recovery_cases[0],
+        disruption=dataset.disruptions[0],
+        policy=dataset.policies[0],
+    )
+
+    with clean_session_factory.begin() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        repository.add_dataset(dataset)
+
+    with clean_session_factory() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        by_case = repository.get_disruption_policy_for_case("CASE-0001")
+        by_disruption = repository.get_disruption_policy_for_disruption("DIS-0001")
+        missing = repository.get_disruption_policy_for_disruption("DIS-9999")
+
+    assert by_case == expected
+    assert by_disruption == expected
+    assert missing is None
+
+
+@pytest.mark.integration
+def test_repository_lists_flights_in_a_bounded_window_deterministically(
+    clean_session_factory: SessionFactory,
+) -> None:
+    with clean_session_factory.begin() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        repository.add_dataset(generate_dataset(seed=42))
+
+    with clean_session_factory() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        flights = repository.list_flights_in_window(
+            datetime(2026, 1, 15, 12, 0, tzinfo=UTC),
+            datetime(2026, 1, 15, 18, 0, tzinfo=UTC),
+        )
+
+    assert [flight.id for flight in flights] == ["FLT-NV101", "FLT-NV102"]
+
+
+@pytest.mark.integration
+def test_repository_retrieves_only_explicit_flight_identifiers(
+    clean_session_factory: SessionFactory,
+) -> None:
+    with clean_session_factory.begin() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        repository.add_dataset(generate_dataset(seed=42))
+
+    with clean_session_factory() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        flights = repository.get_flights_by_ids(("FLT-NV102", "FLT-NV101"))
+        partial = repository.get_flights_by_ids(("FLT-NV101", "FLT-MISSING"))
+
+    assert [flight.id for flight in flights] == ["FLT-NV101", "FLT-NV102"]
+    assert [flight.id for flight in partial] == ["FLT-NV101"]

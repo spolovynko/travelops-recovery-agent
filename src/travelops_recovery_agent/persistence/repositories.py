@@ -1,14 +1,28 @@
 """SQLAlchemy implementation of the recovery data repository."""
 
+from datetime import datetime
+
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.sql import Select
 
 from travelops_recovery_agent.application.models import (
     CompleteRecoveryCase,
     PersistenceRecordCounts,
 )
+from travelops_recovery_agent.application.query_models import (
+    CompleteBooking,
+    FlightWithDisruptions,
+    ResolvedDisruptionPolicy,
+)
 from travelops_recovery_agent.data.dataset import SyntheticDataset
-from travelops_recovery_agent.domain.models import RecoveryCaseId
+from travelops_recovery_agent.domain.models import (
+    BookingId,
+    DisruptionId,
+    Flight,
+    FlightId,
+    RecoveryCaseId,
+)
 from travelops_recovery_agent.persistence.mapping import (
     booking_from_record,
     booking_to_record,
@@ -149,3 +163,144 @@ class SqlAlchemyRecoveryDataRepository:
         self._session.execute(delete(FlightRecord))
         self._session.execute(delete(PassengerRecord))
         self._session.flush()
+
+    def get_complete_booking(
+        self,
+        booking_id: BookingId,
+    ) -> CompleteBooking | None:
+        """Retrieve one booking with passengers and ordered flights."""
+
+        statement = (
+            select(BookingRecord)
+            .where(BookingRecord.id == booking_id)
+            .options(
+                joinedload(BookingRecord.passenger_links).joinedload(
+                    BookingPassengerRecord.passenger
+                ),
+                joinedload(BookingRecord.segments).joinedload(
+                    ItinerarySegmentRecord.flight
+                ),
+            )
+        )
+
+        record = self._session.execute(statement).unique().scalar_one_or_none()
+        if record is None:
+            return None
+
+        return CompleteBooking(
+            booking=booking_from_record(record),
+            passengers=tuple(
+                passenger_from_record(link.passenger) for link in record.passenger_links
+            ),
+            flights=tuple(
+                flight_from_record(segment.flight) for segment in record.segments
+            ),
+        )
+
+    def get_flight_with_disruptions(
+        self,
+        flight_id: FlightId,
+    ) -> FlightWithDisruptions | None:
+        """Retrieve one flight and ordered related disruptions."""
+
+        flight_record = self._session.scalar(
+            select(FlightRecord).where(FlightRecord.id == flight_id)
+        )
+        if flight_record is None:
+            return None
+
+        disruption_records = self._session.scalars(
+            select(DisruptionRecord)
+            .where(DisruptionRecord.affected_flight_id == flight_id)
+            .order_by(DisruptionRecord.occurred_at, DisruptionRecord.id)
+        ).all()
+
+        return FlightWithDisruptions(
+            flight=flight_from_record(flight_record),
+            disruptions=tuple(
+                disruption_from_record(record) for record in disruption_records
+            ),
+        )
+
+    def get_disruption_policy_for_case(
+        self,
+        case_id: RecoveryCaseId,
+    ) -> ResolvedDisruptionPolicy | None:
+        """Resolve one policy through a recovery case."""
+
+        statement = self._policy_resolution_statement().where(
+            RecoveryCaseRecord.id == case_id
+        )
+        record = self._session.execute(statement).unique().scalar_one_or_none()
+        return self._policy_resolution(record)
+
+    def get_disruption_policy_for_disruption(
+        self,
+        disruption_id: DisruptionId,
+    ) -> ResolvedDisruptionPolicy | None:
+        """Resolve one policy through a disruption deterministically."""
+
+        statement = (
+            self._policy_resolution_statement()
+            .where(RecoveryCaseRecord.disruption_id == disruption_id)
+            .order_by(RecoveryCaseRecord.id)
+            .limit(1)
+        )
+        record = self._session.execute(statement).unique().scalar_one_or_none()
+        return self._policy_resolution(record)
+
+    def list_flights_in_window(
+        self,
+        earliest_departure: datetime,
+        latest_arrival: datetime,
+    ) -> tuple[Flight, ...]:
+        """List mapped flights fully contained in one explicit time window."""
+
+        records = self._session.scalars(
+            select(FlightRecord)
+            .where(
+                FlightRecord.scheduled_departure >= earliest_departure,
+                FlightRecord.scheduled_arrival <= latest_arrival,
+            )
+            .order_by(
+                FlightRecord.scheduled_departure,
+                FlightRecord.scheduled_arrival,
+                FlightRecord.id,
+            )
+        ).all()
+        return tuple(flight_from_record(record) for record in records)
+
+    def get_flights_by_ids(
+        self,
+        flight_ids: tuple[FlightId, ...],
+    ) -> tuple[Flight, ...]:
+        """Retrieve mapped flights matching explicit stable identifiers."""
+
+        records = self._session.scalars(
+            select(FlightRecord)
+            .where(FlightRecord.id.in_(flight_ids))
+            .order_by(FlightRecord.id)
+        ).all()
+        return tuple(flight_from_record(record) for record in records)
+
+    @staticmethod
+    def _policy_resolution_statement() -> Select[tuple[RecoveryCaseRecord]]:
+        return select(RecoveryCaseRecord).options(
+            joinedload(RecoveryCaseRecord.disruption),
+            joinedload(RecoveryCaseRecord.policy).selectinload(
+                DisruptionPolicyRecord.type_links
+            ),
+        )
+
+    @staticmethod
+    def _policy_resolution(
+        record: RecoveryCaseRecord | None,
+    ) -> ResolvedDisruptionPolicy | None:
+        if record is None:
+            return None
+
+        return ResolvedDisruptionPolicy(
+            recovery_case=recovery_case_from_record(record),
+            disruption=disruption_from_record(record.disruption),
+            policy=policy_from_record(record.policy),
+        )

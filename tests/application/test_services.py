@@ -1,23 +1,35 @@
 """Tests for transactional persistence application services."""
 
+from datetime import datetime
 from types import TracebackType
 
 import pytest
-from travelops_recovery_agent.application.services import (
-    DatabaseNotEmptyError,
-    RecoveryDataService,
-    UnsafeDatabaseResetError,
-)
 
 from travelops_recovery_agent.application.models import (
     CompleteRecoveryCase,
     PersistenceRecordCounts,
 )
+from travelops_recovery_agent.application.query_models import (
+    CompleteBooking,
+    FlightWithDisruptions,
+    ResolvedDisruptionPolicy,
+)
 from travelops_recovery_agent.application.repositories import RecoveryDataRepository
+from travelops_recovery_agent.application.services import (
+    DatabaseNotEmptyError,
+    RecoveryDataService,
+    UnsafeDatabaseResetError,
+)
 from travelops_recovery_agent.core.config import Environment
 from travelops_recovery_agent.data.dataset import SyntheticDataset
 from travelops_recovery_agent.data.generator import generate_dataset
-from travelops_recovery_agent.domain.models import RecoveryCaseId
+from travelops_recovery_agent.domain.models import (
+    BookingId,
+    DisruptionId,
+    Flight,
+    FlightId,
+    RecoveryCaseId,
+)
 
 EMPTY_COUNTS = PersistenceRecordCounts(0, 0, 0, 0, 0, 0, 0, 0, 0)
 SEEDED_COUNTS = PersistenceRecordCounts(13, 20, 10, 13, 20, 10, 1, 3, 10)
@@ -30,6 +42,7 @@ class FakeRecoveryDataRepository:
         self.requested_case_ids: list[RecoveryCaseId] = []
         self.clear_calls = 0
         self.complete_case: CompleteRecoveryCase | None = None
+        self.complete_booking: CompleteBooking | None = None
 
     def counts(self) -> PersistenceRecordCounts:
         return self.current_counts
@@ -44,6 +57,43 @@ class FakeRecoveryDataRepository:
     ) -> CompleteRecoveryCase | None:
         self.requested_case_ids.append(case_id)
         return self.complete_case
+
+    def get_complete_booking(
+        self,
+        booking_id: BookingId,
+    ) -> CompleteBooking | None:
+        return self.complete_booking
+
+    def get_flight_with_disruptions(
+        self,
+        flight_id: FlightId,
+    ) -> FlightWithDisruptions | None:
+        return None
+
+    def get_disruption_policy_for_case(
+        self,
+        case_id: RecoveryCaseId,
+    ) -> ResolvedDisruptionPolicy | None:
+        return None
+
+    def get_disruption_policy_for_disruption(
+        self,
+        disruption_id: DisruptionId,
+    ) -> ResolvedDisruptionPolicy | None:
+        return None
+
+    def list_flights_in_window(
+        self,
+        earliest_departure: datetime,
+        latest_arrival: datetime,
+    ) -> tuple[Flight, ...]:
+        return ()
+
+    def get_flights_by_ids(
+        self,
+        flight_ids: tuple[FlightId, ...],
+    ) -> tuple[Flight, ...]:
+        return ()
 
     def clear(self) -> None:
         self.clear_calls += 1

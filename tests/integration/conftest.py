@@ -9,6 +9,7 @@ from alembic.config import Config
 from pydantic import SecretStr
 from sqlalchemy import Engine, text
 from sqlalchemy.engine import make_url
+from sqlalchemy.exc import SQLAlchemyError
 
 from travelops_recovery_agent.core.config import Settings
 from travelops_recovery_agent.persistence.session import (
@@ -52,7 +53,14 @@ def migrated_engine(test_database_url: str) -> Iterator[Engine]:
     os.environ["TRAVELOPS_DATABASE_URL"] = test_database_url
 
     try:
-        command.upgrade(Config("alembic.ini"), "head")
+        try:
+            command.upgrade(Config("alembic.ini"), "head")
+        except SQLAlchemyError:
+            pytest.fail(
+                "integration database connection failed; verify that PostgreSQL "
+                "is healthy and the test database URL is correct",
+                pytrace=False,
+            )
     finally:
         if previous_database_url is None:
             os.environ.pop("TRAVELOPS_DATABASE_URL", None)

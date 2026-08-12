@@ -2,10 +2,10 @@
 
 ## Current state
 
-- **Current phase:** Phase 3 — PostgreSQL persistence and service boundaries
-- **Status:** Complete; Phase 4 not started
-- **Last completed result:** Migrated and seeded PostgreSQL with explicit mapping, repositories, transactions, and safe database CLI workflows
-- **Next gate:** Review the intended Phase 3 Git scope and create a checkpoint commit only after explicit approval
+- **Current phase:** Phase 4 — typed read-only operational tools
+- **Status:** Complete; awaiting review and an explicitly approved checkpoint commit
+- **Last completed result:** Five guarded, schema-discoverable tools working directly against seeded PostgreSQL without an LLM
+- **Next gate:** Review the intended Phase 4 Git scope and create a checkpoint commit only after explicit approval
 
 ## Concepts confirmed in Phase 0
 
@@ -42,11 +42,21 @@
 - Real-database integration tests, isolation, migration, cleanup, and rollback
 - Deterministic controlled seeding and production-blocked reset behavior
 
+## Concepts confirmed in Phase 4
+
+- Tool contracts, adapters, application query services, repositories, and domain rules
+- Strict typed schemas and structured results independent of prompt wording
+- Least privilege, fail-closed permission checks, deadlines, and safe errors
+- Correlation and minimized audit metadata without secrets or raw passenger records
+- Deterministic candidate generation separated from final validation
+- Schema discovery through a non-executable registry and direct no-LLM invocation
+- Unit, contract, and isolated real-PostgreSQL integration responsibilities
+
 ## Parking lot
 
 - Model provider selection belongs to Phase 6.
 - LangGraph and any justified minimal LangChain integration belong to Phase 7.
-- Typed operational tools belong to Phase 4.
+- The visual operator dashboard belongs to Phase 5.
 - React belongs to Phase 5.
 - Context engineering through MCP are committed as the advanced track in Phases 12–20.
 - Voice and real airline integrations remain outside the committed track.
@@ -183,3 +193,36 @@ authentication, production deployment, and real airline integrations.
 
 **Next smallest step:** Review the intended Phase 3 Git scope and create a
 checkpoint commit only after explicit approval; do not begin Phase 4 yet.
+
+## Session 5 — 2026-08-12
+
+**Phase:** Phase 4 — typed read-only operational tools
+
+**Built:** Added shared permission, execution-context, deadline, error, success,
+failure, and audit contracts; application query models and services; narrow
+repository reads; deterministic itinerary rules; five guarded adapters; strict
+tool input/output models; a schema registry; and a direct no-LLM CLI.
+
+**Verified:** Focused domain, application, schema, adapter, authorization,
+deadline, safe-error, determinism, audit, and CLI tests; strict mypy and Ruff;
+17 isolated PostgreSQL integration tests; migration revision `0001`; ten seeded
+recovery cases; and successful live calls to all five tools. The final
+cross-phase gate passed all 249 tests, Ruff, strict mypy, package import and
+builds, Compose health, and real-socket `GET /health`.
+
+**Concepts confirmed:** Narrow tools versus services, repositories, domain rules,
+and APIs; dependency inversion; typed schema contracts; least privilege;
+authentication context versus permission; fail-closed reads; safe error
+translation; deadlines versus cancellation and retry; correlation and auditing;
+data minimization; deterministic search versus validation; and no-LLM testing.
+
+**Still unclear:** Nothing required by the Phase 4 learning contract.
+
+**Decisions:** [D-022 — Use guarded Pydantic tool adapters and shared envelopes](decisions.md#d-022--use-guarded-pydantic-tool-adapters-and-shared-envelopes); [D-023 — Enforce least privilege and absolute deadlines at each adapter](decisions.md#d-023--enforce-least-privilege-and-absolute-deadlines-at-each-adapter); [D-024 — Separate deterministic candidate generation from validation](decisions.md#d-024--separate-deterministic-candidate-generation-from-validation).
+
+**Parked:** Phase 5 UI, Phase 6 model loop, Phase 7 LangGraph orchestration,
+Phase 9 availability and recommendation evidence, Phase 10 writes and approval,
+new business API routes, real airline APIs, and production authentication.
+
+**Next smallest step:** Review the Phase 4 diff and create a checkpoint commit
+only after explicit approval; do not begin Phase 5 yet.

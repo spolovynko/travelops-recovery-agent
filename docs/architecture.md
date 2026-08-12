@@ -51,6 +51,25 @@ flowchart TB
 9. Logs and traces exclude raw secrets and minimize synthetic passenger details.
 10. External or retrieved text is treated as untrusted data, never as system instructions.
 
+## Phase 4 operational read path
+
+```mermaid
+flowchart LR
+    CALLER["Manual CLI or future agent"] --> CONTRACT["Typed input + execution context"]
+    CONTRACT --> ADAPTER["Tool adapter: permission, deadline, safe errors, audit"]
+    ADAPTER --> SERVICE["Application query service"]
+    SERVICE --> REPOSITORY["Application-owned repository protocol"]
+    REPOSITORY --> POSTGRES[("PostgreSQL")]
+    SERVICE --> RULES["Deterministic domain validation"]
+    ADAPTER --> RESULT["Typed success or failure"]
+```
+
+The registry publishes schemas but does not execute tools. The CLI is an outer
+composition root that constructs persistence and injects an application service
+into adapters. Adapters never receive an engine, session, repository, SQL string,
+or write capability. `GET /health` remains the only current HTTP route involved;
+tools are not API endpoints.
+
 The detailed screen model, event contract, approval experience, accessibility requirements, and frontend testing strategy are in [ui.md](ui.md).
 
 ## Agent state sketch
@@ -84,7 +103,7 @@ Store identifiers and structured facts in state. Do not use formatted prompt tex
 | `get_booking` | Read | Return the authorized booking and itinerary view |
 | `get_flight_status` | Read | Return the current synthetic operational status |
 | `get_disruption_policy` | Read | Return relevant policy sections with references |
-| `search_alternative_itineraries` | Read | Produce candidate routes from deterministic availability data |
+| `search_alternative_itineraries` | Read | Produce scheduled-flight candidates; inventory and ticket rules remain explicitly unevaluated |
 | `validate_itinerary` | Read | Return structured rule results for a candidate |
 | `prepare_rebooking` | Proposal | Store an immutable proposed change without executing it |
 | `execute_rebooking` | Write | Execute one approved, current, idempotent proposal |
@@ -98,6 +117,10 @@ Store identifiers and structured facts in state. Do not use formatted prompt tex
 - What evidence is safe and useful to retain in traces?
 
 Answers are recorded in [decisions.md](decisions.md) when the responsible phase reaches them.
+
+Phase 4 resolved the read-tool boundary questions in D-022 through D-024.
+Proposal and write tools remain future catalogue entries, not registered or
+implemented capabilities.
 
 ## Advanced evolution
 

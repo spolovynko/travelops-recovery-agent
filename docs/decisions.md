@@ -328,6 +328,76 @@ is a controlled fixture workflow rather than a general data synchronization tool
 **Revisit when:** The project needs versioned reference-data upgrades or a
 production-safe administrative lifecycle.
 
+## D-022 — Use guarded Pydantic tool adapters and shared envelopes
+
+**Status:** Accepted
+
+**Context:** Future callers need stable schemas and narrow access without gaining
+database sessions, arbitrary repositories, or framework-specific tool objects.
+
+**Decision:** Use small callable adapter classes around application query
+services. Define strict immutable Pydantic inputs, outputs, execution context,
+safe failure taxonomy, audit metadata, and shared success/failure envelopes.
+Publish their JSON schemas in a read-only registry.
+
+**Alternatives:** Plain unvalidated functions, framework-specific LangChain
+tools, HTTP endpoints for every tool, exceptions as the public contract, or a
+generic database query capability.
+
+**Consequences:** Tools work without an LLM and future model integration can
+discover the same contracts. There is deliberate mapping between application
+results and minimized tool outputs.
+
+**Revisit when:** Phase 6 proves that a model-provider adapter needs additional
+metadata; keep the application-owned contracts stable beneath it.
+
+## D-023 — Enforce least privilege and absolute deadlines at each adapter
+
+**Status:** Accepted
+
+**Context:** Read access can still expose passenger or operational data, and a
+future caller must not bypass authorization or continue stale work indefinitely.
+
+**Decision:** Require an explicit per-tool permission and timezone-aware absolute
+deadline in every execution context. Check both before application access, check
+the deadline again afterward, fail closed, translate internal exceptions to safe
+dependency failures, and do not retry automatically inside adapters.
+
+**Alternatives:** Trust a prompt, authorize only at a future API route, use one
+broad read permission, accept relative timeouts in deep layers, or hide retries
+inside each tool.
+
+**Consequences:** Every entry point has consistent local protection and clear
+audit facts. Synchronous work cannot be forcibly cancelled mid-query, so the
+deadline is cooperative; higher orchestration may later add cancellation and
+policy-based retries.
+
+**Revisit when:** Trusted authentication infrastructure supplies principals or
+asynchronous external calls require active cancellation.
+
+## D-024 — Separate deterministic candidate generation from validation
+
+**Status:** Accepted
+
+**Context:** The synthetic dataset has schedules and disruptions but no seat
+inventory, prices, ticket rules, or minimum-connection policy. Search must not
+turn missing evidence into invented validity.
+
+**Decision:** Search deterministic direct and one-connection scheduled-flight
+candidates in a bounded window. Validate stored-flight existence, route
+continuity, and chronological order separately. Report inventory, ticket rules,
+and minimum-connection policy as not evaluated or deferred.
+
+**Alternatives:** Treat search results as valid, invent availability, combine
+search and validation into one opaque operation, or postpone all candidate work.
+
+**Consequences:** Results are repeatable and honest about evidence limits. A
+candidate may be structurally valid without being a recommendable or bookable
+option; later phases must add and recheck the missing facts.
+
+**Revisit when:** Phase 9 introduces repository-backed availability, connection,
+and ticket-rule evidence.
+
 ## Decision template
 
 ```markdown
