@@ -398,6 +398,65 @@ option; later phases must add and recheck the missing facts.
 **Revisit when:** Phase 9 introduces repository-backed availability, connection,
 and ticket-rule evidence.
 
+## D-025 — Use a separate Vite frontend with URL-owned case selection
+
+**Status:** Accepted
+
+**Context:** The manual dashboard needs typed routing, component tests and a
+production build without coupling React source to Python packaging.
+
+**Decision:** Keep React and TypeScript under `frontend/`, use npm with a locked
+dependency graph, Vite for development/build, React Router for `/cases` and
+`/cases/:caseId`, and a development proxy to FastAPI.
+
+**Alternatives:** Server-render HTML from FastAPI, embed frontend source inside
+the Python package, or keep the selected case only in component state.
+
+**Consequences:** Frontend and backend have explicit build boundaries. Direct
+URLs and refresh work, while both dependency ecosystems require their own gate.
+
+**Revisit when:** Deployment packaging requires one distributable artifact.
+
+## D-026 — Give TanStack Query ownership of server state
+
+**Status:** Accepted
+
+**Context:** Queue, workspace, search and validation requests need consistent
+loading, failure, retry and cache behavior without copying authoritative facts
+into local component state.
+
+**Decision:** Use TanStack Query for HTTP-derived state. Keep only draft search
+fields and current-session presentation state in React state. Store no passenger
+or database data in local storage.
+
+**Alternatives:** Hand-written effects and loading flags, a global client store,
+or browser persistence.
+
+**Consequences:** Refresh reloads business state and components remain focused
+on rendering. The project gains one small server-state dependency.
+
+**Revisit when:** Durable live workflow state arrives in Phase 8.
+
+## D-027 — Expose purpose-built read-only browser APIs, not tool adapters
+
+**Status:** Accepted
+
+**Context:** Phase 4 tools and the browser serve different callers. Tool audit,
+permission and execution envelopes are not useful UI view models.
+
+**Decision:** Add four `/api/v1` routes that call application query services and
+map to strict Pydantic UI views. Complex searches use POST bodies but never
+mutate data. Keep `/health` unchanged and translate failures safely.
+
+**Alternatives:** Invoke tool adapters from routes, expose persistence records,
+or add a generic query endpoint.
+
+**Consequences:** Browser contracts minimize data and can evolve independently
+from model tools and storage. Some deliberate mapping code exists at the API
+boundary.
+
+**Revisit when:** Authentication or generated client contracts are introduced.
+
 ## Decision template
 
 ```markdown

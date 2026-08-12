@@ -2,10 +2,10 @@
 
 ## Current state
 
-- **Current phase:** Phase 4 — typed read-only operational tools
-- **Status:** Complete; awaiting review and an explicitly approved checkpoint commit
-- **Last completed result:** Five guarded, schema-discoverable tools working directly against seeded PostgreSQL without an LLM
-- **Next gate:** Review the intended Phase 4 Git scope and create a checkpoint commit only after explicit approval
+- **Current phase:** Phase 5 — visual operator dashboard
+- **Status:** Complete
+- **Last completed result:** A verified read-only React operations console for manual disruption investigation without an LLM
+- **Next gate:** Review and commit the intended Phase 5 Git scope, then begin Phase 6 only after an explicit request
 
 ## Concepts confirmed in Phase 0
 
@@ -52,12 +52,22 @@
 - Schema discovery through a non-executable registry and direct no-LLM invocation
 - Unit, contract, and isolated real-PostgreSQL integration responsibilities
 
+## Concepts confirmed in Phase 5
+
+- URL-owned case selection and authoritative reload after refresh
+- Browser view models versus domain models and persistence records
+- TanStack Query ownership of server state versus local draft UI state
+- Purpose-built browser APIs versus Phase 4 tool adapters
+- Responsive, accessible status communication without color-only meaning
+- Safe loading, empty, not-found, dependency-failure, and deferred-evidence states
+- Deterministic search separated from backend validation and bookability
+- Component, browser, API, application, and real-database test responsibilities
+
 ## Parking lot
 
 - Model provider selection belongs to Phase 6.
 - LangGraph and any justified minimal LangChain integration belong to Phase 7.
-- The visual operator dashboard belongs to Phase 5.
-- React belongs to Phase 5.
+- The visual operator dashboard and React baseline were completed in Phase 5.
 - Context engineering through MCP are committed as the advanced track in Phases 12–20.
 - Voice and real airline integrations remain outside the committed track.
 
@@ -226,3 +236,39 @@ new business API routes, real airline APIs, and production authentication.
 
 **Next smallest step:** Review the Phase 4 diff and create a checkpoint commit
 only after explicit approval; do not begin Phase 5 yet.
+
+## Session 6 — 2026-08-12
+
+**Phase:** Phase 5 — visual operator dashboard
+
+**Built:** Added four versioned read-only recovery browser routes, strict
+Pydantic view/request models, complete-case queue reads, safe 404/503 handling,
+and a React/TypeScript operations console with URL routing, TanStack Query,
+case queue, evidence workspace, deterministic alternative search, candidate
+validation, responsive layouts, accessible states, and a Playwright journey.
+
+**Verified:** Ruff format and lint, strict mypy over 72 Python files, 243
+non-database tests, all 18 isolated PostgreSQL integration tests, package wheel
+and source-distribution builds, Prettier, TypeScript, Oxlint, seven component
+tests, production Vite build, and one Playwright end-to-end test. A live seeded
+workflow passed queue navigation, direct case loading, search, validation and
+refresh. Desktop 1440×900 and mobile 390×844 checks had no horizontal overflow,
+and the browser console contained no warnings or errors.
+
+**Concepts confirmed:** Browser/API/application/persistence boundaries; typed
+view models; URL and server-state ownership; deterministic backend validation;
+explicit deferred evidence; responsive and accessible status design; safe
+errors and passenger-data minimization; layered frontend and backend tests.
+
+**Still unclear:** Nothing required by the Phase 5 learning contract. Seat
+inventory, ticket rules, minimum-connection policy and durable workflow state
+remain explicitly unavailable until their assigned phases.
+
+**Decisions:** [D-025 — Use a separate Vite frontend with URL-owned case selection](decisions.md#d-025--use-a-separate-vite-frontend-with-url-owned-case-selection); [D-026 — Give TanStack Query ownership of server state](decisions.md#d-026--give-tanstack-query-ownership-of-server-state); [D-027 — Expose purpose-built read-only browser APIs, not tool adapters](decisions.md#d-027--expose-purpose-built-read-only-browser-apis-not-tool-adapters).
+
+**Parked:** LLM integration, agent loops, LangGraph, SSE, durable checkpoints,
+recommendations, live inventory, ticket rules, prices, approval, booking writes,
+production authentication, and real airline integrations.
+
+**Next smallest step:** Review and commit the Phase 5 scope. Begin Phase 6 only
+after an explicit request.

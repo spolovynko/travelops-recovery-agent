@@ -1,5 +1,6 @@
 """Read-only application services for operational tools."""
 
+from travelops_recovery_agent.application.models import CompleteRecoveryCase
 from travelops_recovery_agent.application.query_models import (
     AlternativeItinerary,
     AlternativeSearchRequirements,
@@ -7,6 +8,7 @@ from travelops_recovery_agent.application.query_models import (
     FlightStatus,
     ItineraryValidationResult,
     OperationalFlightStatus,
+    RecoveryCaseQueueItem,
     ResolvedDisruptionPolicy,
 )
 from travelops_recovery_agent.application.services import (
@@ -19,7 +21,9 @@ from travelops_recovery_agent.domain.models import (
     BookingId,
     CancelledFlightDetails,
     DelayedFlightDetails,
+    Disruption,
     DisruptionId,
+    Flight,
     FlightId,
     RecoveryCaseId,
 )
@@ -39,6 +43,50 @@ class OperationalQueryService:
         with self._unit_of_work_factory() as unit_of_work:
             return unit_of_work.repository.get_complete_booking(booking_id)
 
+    def list_recovery_cases(self) -> tuple[RecoveryCaseQueueItem, ...]:
+        """Return deterministic application facts for the disruption queue."""
+
+        with self._unit_of_work_factory() as unit_of_work:
+            complete_cases = unit_of_work.repository.list_complete_cases()
+
+        return tuple(
+            self._build_queue_item(complete_case) for complete_case in complete_cases
+        )
+
+    def get_recovery_case(
+        self,
+        case_id: RecoveryCaseId,
+    ) -> CompleteRecoveryCase | None:
+        """Return one complete case without exposing persistence objects."""
+
+        with self._unit_of_work_factory() as unit_of_work:
+            return unit_of_work.repository.get_complete_case(case_id)
+
+    def _build_queue_item(
+        self,
+        complete_case: CompleteRecoveryCase,
+    ) -> RecoveryCaseQueueItem:
+        """Build one queue item from validated stored business facts."""
+
+        disruption = complete_case.disruption
+        affected_flight = next(
+            flight
+            for flight in complete_case.flights
+            if flight.id == disruption.affected_flight_id
+        )
+
+        return RecoveryCaseQueueItem(
+            recovery_case=complete_case.recovery_case,
+            booking=complete_case.booking,
+            passenger_count=len(complete_case.passengers),
+            itinerary=complete_case.flights,
+            disruption=disruption,
+            affected_flight_status=self._build_flight_status(
+                affected_flight,
+                (disruption,),
+            ),
+        )
+
     def get_flight_status(self, flight_id: FlightId) -> FlightStatus | None:
         """Derive synthetic operational status from stored disruption data."""
 
@@ -48,17 +96,32 @@ class OperationalQueryService:
         if stored is None:
             return None
 
-        disruptions = tuple(
-            sorted(stored.disruptions, key=lambda item: (item.occurred_at, item.id))
+        return self._build_flight_status(
+            stored.flight,
+            stored.disruptions,
+        )
+
+    @staticmethod
+    def _build_flight_status(
+        flight: Flight,
+        disruptions: tuple[Disruption, ...],
+    ) -> FlightStatus:
+        """Build deterministic status from stored flight and disruption facts."""
+
+        ordered_disruptions = tuple(
+            sorted(
+                disruptions,
+                key=lambda item: (item.occurred_at, item.id),
+            )
         )
         cancellation_reasons = [
             item.details.reason
-            for item in disruptions
+            for item in ordered_disruptions
             if isinstance(item.details, CancelledFlightDetails)
         ]
         delays = [
             item.details.delay_minutes
-            for item in disruptions
+            for item in ordered_disruptions
             if isinstance(item.details, DelayedFlightDetails)
         ]
 
@@ -76,11 +139,11 @@ class OperationalQueryService:
             cancellation_reason = None
 
         return FlightStatus(
-            flight=stored.flight,
+            flight=flight,
             status=status,
             delay_minutes=delay_minutes,
             cancellation_reason=cancellation_reason,
-            related_disruptions=disruptions,
+            related_disruptions=ordered_disruptions,
         )
 
     def get_disruption_policy_for_case(

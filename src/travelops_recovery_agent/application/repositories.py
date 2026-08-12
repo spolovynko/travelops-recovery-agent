@@ -86,3 +86,7 @@ class RecoveryDataRepository(Protocol):
     ) -> tuple[Flight, ...]:
         """Retrieve only stored flights matching explicit stable identifiers."""
         ...
+
+    def list_complete_cases(self) -> tuple[CompleteRecoveryCase, ...]:
+        """List complete recovery cases in stable identifier order."""
+        ...

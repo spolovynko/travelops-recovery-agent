@@ -1,32 +1,51 @@
-# React + TypeScript + Vite
+# TravelOps operator dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+This directory contains the Phase 5 React and TypeScript operator dashboard.
+It is a browser client for the versioned FastAPI recovery endpoints; it does
+not duplicate recovery rules or write booking state.
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Start FastAPI from the repository root:
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```powershell
+uv run uvicorn travelops_recovery_agent.api.app:app --reload
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+In a second terminal, start Vite:
+
+```powershell
+cd frontend
+npm ci
+npm run dev
+```
+
+Open `http://localhost:5173/cases`. During development, Vite proxies `/api`
+and `/health` requests to `http://127.0.0.1:8000`.
+
+## Structure
+
+```text
+src/
+|-- api/          # Typed API models and the HTTP boundary
+|-- app/          # Router, query client, providers, and shell
+|-- components/   # Reusable loading, error, and status UI
+|-- features/     # Case queue and recovery workspace
+|-- styles/       # Global responsive visual system
+`-- test/         # Shared component-test setup and fixtures
+e2e/              # Playwright workflow coverage
+```
+
+## Quality checks
+
+```powershell
+npm run format:check
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+```
+
+The UI workflow and backend boundary are documented with diagrams in
+[`../docs/notes/phase-5.md`](../docs/notes/phase-5.md).

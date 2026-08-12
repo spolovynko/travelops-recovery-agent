@@ -92,6 +92,30 @@ def test_repository_adds_counts_retrieves_and_clears_dataset(
 
 
 @pytest.mark.integration
+def test_repository_lists_complete_cases_in_stable_order(
+    clean_session_factory: SessionFactory,
+) -> None:
+    with clean_session_factory() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        assert repository.list_complete_cases() == ()
+
+    with clean_session_factory.begin() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        repository.add_dataset(generate_dataset(seed=42))
+
+    with clean_session_factory() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        complete_cases = repository.list_complete_cases()
+
+    assert [item.recovery_case.id for item in complete_cases] == [
+        f"CASE-{case_number:04d}" for case_number in range(1, 11)
+    ]
+    assert complete_cases == tuple(
+        expected_complete_case(case_index) for case_index in range(10)
+    )
+
+
+@pytest.mark.integration
 def test_repository_writes_roll_back_with_the_callers_transaction(
     clean_session_factory: SessionFactory,
 ) -> None:

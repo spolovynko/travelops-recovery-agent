@@ -192,10 +192,33 @@ Global options before the command can set `--actor-id`, `--correlation-id`, and
 returns a typed JSON success or failure envelope with safe audit metadata. See
 [docs/notes/phase-4.md](docs/notes/phase-4.md) for the complete boundary model.
 
+## Phase 5 operator dashboard
+
+The dashboard is a manual operations console, not a chatbot. With PostgreSQL
+migrated and seeded as documented above, start FastAPI and Vite in separate
+terminals:
+
+```powershell
+# Terminal 1 — serve the versioned browser API
+uv run --locked uvicorn travelops_recovery_agent.api.app:create_app `
+  --factory --host 127.0.0.1 --port 8000
+
+# Terminal 2 — serve React and proxy /api calls to FastAPI
+Set-Location frontend
+npm.cmd ci
+npm.cmd run dev
+```
+
+Open the Vite address and use `/cases`. The queue and `/cases/:caseId`
+workspace reload server-owned facts after refresh. Operators can inspect the
+passenger party, journey, disruption, status and policy, search scheduled
+alternatives, and request deterministic validation. No action mutates a booking
+or recovery case. See [the visual Phase 5 workflow](docs/notes/phase-5.md).
+
 ## Current status
 
-Phase 4 is complete. Five narrow read-only tools expose minimized booking data,
-deterministic flight status and policy facts, alternative candidates, and
-structured itinerary validation. They use stable schemas, explicit permissions,
-absolute deadlines, safe errors, and audit metadata, and work directly against
-PostgreSQL without an LLM. Phase 5 frontend work has not started.
+Phase 5 implements the visual manual-investigation baseline. A typed React UI
+uses four read-only FastAPI routes to load the queue and case workspace, search
+deterministic alternatives, and display structured validation. Phase 4 tools
+remain available for future agents, but browser routes call application services
+directly. No LLM, agent loop, recommendation, approval or booking write exists.

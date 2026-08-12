@@ -54,6 +54,18 @@ class FlightStatus:
 
 
 @dataclass(frozen=True)
+class RecoveryCaseQueueItem:
+    """Application-owned facts required by one disruption queue entry."""
+
+    recovery_case: RecoveryCase
+    booking: Booking
+    passenger_count: int
+    itinerary: tuple[Flight, ...]
+    disruption: Disruption
+    affected_flight_status: FlightStatus
+
+
+@dataclass(frozen=True)
 class ResolvedDisruptionPolicy:
     """Recovery case, disruption, and applicable structured policy."""
 

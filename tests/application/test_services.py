@@ -58,6 +58,9 @@ class FakeRecoveryDataRepository:
         self.requested_case_ids.append(case_id)
         return self.complete_case
 
+    def list_complete_cases(self) -> tuple[CompleteRecoveryCase, ...]:
+        return () if self.complete_case is None else (self.complete_case,)
+
     def get_complete_booking(
         self,
         booking_id: BookingId,

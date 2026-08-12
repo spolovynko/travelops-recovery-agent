@@ -72,6 +72,25 @@ tools are not API endpoints.
 
 The detailed screen model, event contract, approval experience, accessibility requirements, and frontend testing strategy are in [ui.md](ui.md).
 
+## Phase 5 manual dashboard path
+
+```mermaid
+flowchart LR
+    BROWSER["React + TypeScript browser UI"] -->|"versioned JSON"| API["FastAPI /api/v1 recovery routes"]
+    API --> VIEWS["Frontend-oriented Pydantic view models"]
+    API --> SERVICE["OperationalQueryService"]
+    SERVICE --> RULES["Deterministic domain rules"]
+    SERVICE --> REPOSITORY["RecoveryDataRepository protocol"]
+    REPOSITORY --> SQLA["SQLAlchemy adapter"]
+    SQLA --> POSTGRES[("PostgreSQL")]
+```
+
+Phase 5 routes are browser APIs, not Phase 4 tools. They compose the same
+application services for a different caller and return UI-specific views. React
+never imports tool contracts, repository types or persistence records. Search
+and validation use POST for typed query bodies but perform no business write.
+The URL identifies the case; refresh reloads authoritative facts from the API.
+
 ## Agent state sketch
 
 The exact schema belongs to Phase 7. The working hypothesis is:

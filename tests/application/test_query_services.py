@@ -3,6 +3,7 @@
 from types import TracebackType
 from typing import cast
 
+from travelops_recovery_agent.application.models import CompleteRecoveryCase
 from travelops_recovery_agent.application.query_models import (
     CompleteBooking,
     FlightWithDisruptions,
@@ -34,6 +35,32 @@ def complete_booking(case_index: int = 6) -> CompleteBooking:
             passengers_by_id[passenger_id] for passenger_id in booking.passenger_ids
         ),
         flights=tuple(flights_by_id[segment.flight_id] for segment in booking.segments),
+    )
+
+
+def complete_case(case_index: int) -> CompleteRecoveryCase:
+    dataset = generate_dataset(seed=42)
+    recovery_case = dataset.recovery_cases[case_index]
+    booking = next(
+        item for item in dataset.bookings if item.id == recovery_case.booking_id
+    )
+    disruption = next(
+        item for item in dataset.disruptions if item.id == recovery_case.disruption_id
+    )
+    policy = next(
+        item for item in dataset.policies if item.id == recovery_case.policy_id
+    )
+    passengers_by_id = {passenger.id: passenger for passenger in dataset.passengers}
+    flights_by_id = {flight.id: flight for flight in dataset.flights}
+    return CompleteRecoveryCase(
+        recovery_case=recovery_case,
+        booking=booking,
+        passengers=tuple(
+            passengers_by_id[passenger_id] for passenger_id in booking.passenger_ids
+        ),
+        flights=tuple(flights_by_id[segment.flight_id] for segment in booking.segments),
+        disruption=disruption,
+        policy=policy,
     )
 
 
@@ -78,6 +105,17 @@ class FlightQueryRepositoryStub(BookingQueryRepositoryStub):
     ) -> FlightWithDisruptions | None:
         self.requested_flight_ids.append(flight_id)
         return self.flight_result
+
+
+class RecoveryCaseQueryRepositoryStub(BookingQueryRepositoryStub):
+    def __init__(self, results: tuple[CompleteRecoveryCase, ...]) -> None:
+        super().__init__(None)
+        self.results = results
+        self.list_calls = 0
+
+    def list_complete_cases(self) -> tuple[CompleteRecoveryCase, ...]:
+        self.list_calls += 1
+        return self.results
 
 
 def flight_with_disruptions(
@@ -160,6 +198,50 @@ def test_get_booking_preserves_a_missing_result() -> None:
 
     assert service.get_booking("BKG-9999") is None
     assert repository.requested_booking_ids == ["BKG-9999"]
+
+
+def test_list_recovery_cases_builds_ordered_minimized_queue_facts() -> None:
+    stored_cases = (
+        complete_case(case_index=0),
+        complete_case(case_index=3),
+        complete_case(case_index=9),
+    )
+    repository = RecoveryCaseQueryRepositoryStub(stored_cases)
+    unit_of_work = BookingQueryUnitOfWorkStub(repository)
+    factory = cast(RecoveryDataUnitOfWorkFactory, lambda: unit_of_work)
+
+    result = OperationalQueryService(factory).list_recovery_cases()
+
+    assert [item.recovery_case.id for item in result] == [
+        "CASE-0001",
+        "CASE-0004",
+        "CASE-0010",
+    ]
+    assert [item.passenger_count for item in result] == [1, 1, 2]
+    assert [item.affected_flight_status.status for item in result] == [
+        OperationalFlightStatus.DELAYED,
+        OperationalFlightStatus.CANCELLED,
+        OperationalFlightStatus.SCHEDULED,
+    ]
+    assert result[0].affected_flight_status.delay_minutes == 30
+    assert result[1].affected_flight_status.cancellation_reason == (
+        "Synthetic aircraft availability issue"
+    )
+    assert result[2].disruption.details.type.value == "missed_connection"
+    assert repository.list_calls == 1
+    assert unit_of_work.entered is True
+    assert unit_of_work.exited is True
+
+
+def test_list_recovery_cases_preserves_an_empty_queue() -> None:
+    repository = RecoveryCaseQueryRepositoryStub(())
+    factory = cast(
+        RecoveryDataUnitOfWorkFactory,
+        lambda: BookingQueryUnitOfWorkStub(repository),
+    )
+
+    assert OperationalQueryService(factory).list_recovery_cases() == ()
+    assert repository.list_calls == 1
 
 
 def test_get_flight_status_derives_delay_from_stored_disruption_data() -> None:

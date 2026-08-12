@@ -119,26 +119,46 @@ class SqlAlchemyRecoveryDataRepository:
         self,
         case_id: RecoveryCaseId,
     ) -> CompleteRecoveryCase | None:
-        statement = (
-            select(RecoveryCaseRecord)
-            .where(RecoveryCaseRecord.id == case_id)
-            .options(
-                joinedload(RecoveryCaseRecord.booking)
-                .selectinload(BookingRecord.passenger_links)
-                .joinedload(BookingPassengerRecord.passenger),
-                joinedload(RecoveryCaseRecord.booking)
-                .selectinload(BookingRecord.segments)
-                .joinedload(ItinerarySegmentRecord.flight),
-                joinedload(RecoveryCaseRecord.disruption),
-                joinedload(RecoveryCaseRecord.policy).selectinload(
-                    DisruptionPolicyRecord.type_links
-                ),
-            )
+        statement = self._complete_case_statement().where(
+            RecoveryCaseRecord.id == case_id
         )
 
         record = self._session.execute(statement).unique().scalar_one_or_none()
         if record is None:
             return None
+
+        return self._complete_case_from_record(record)
+
+    def list_complete_cases(self) -> tuple[CompleteRecoveryCase, ...]:
+        """List complete cases in stable recovery-case identifier order."""
+
+        statement = self._complete_case_statement().order_by(RecoveryCaseRecord.id)
+        records = self._session.execute(statement).unique().scalars().all()
+
+        return tuple(self._complete_case_from_record(record) for record in records)
+
+    @staticmethod
+    def _complete_case_statement() -> Select[tuple[RecoveryCaseRecord]]:
+        """Build the shared complete-case query without executing it."""
+
+        return select(RecoveryCaseRecord).options(
+            joinedload(RecoveryCaseRecord.booking)
+            .selectinload(BookingRecord.passenger_links)
+            .joinedload(BookingPassengerRecord.passenger),
+            joinedload(RecoveryCaseRecord.booking)
+            .selectinload(BookingRecord.segments)
+            .joinedload(ItinerarySegmentRecord.flight),
+            joinedload(RecoveryCaseRecord.disruption),
+            joinedload(RecoveryCaseRecord.policy).selectinload(
+                DisruptionPolicyRecord.type_links
+            ),
+        )
+
+    @staticmethod
+    def _complete_case_from_record(
+        record: RecoveryCaseRecord,
+    ) -> CompleteRecoveryCase:
+        """Map loaded persistence records into application/domain objects."""
 
         return CompleteRecoveryCase(
             recovery_case=recovery_case_from_record(record),
