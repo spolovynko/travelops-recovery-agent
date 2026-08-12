@@ -91,29 +91,72 @@ never imports tool contracts, repository types or persistence records. Search
 and validation use POST for typed query bodies but perform no business write.
 The URL identifies the case; refresh reloads authoritative facts from the API.
 
-## Agent state sketch
+## Phase 6 manual agent path
 
-The exact schema belongs to Phase 7. The working hypothesis is:
-
-```text
-RecoveryState
-├── case_id
-├── operator_id
-├── status
-├── current_step
-├── collected_evidence
-├── tool_history
-├── retry_counts
-├── candidate_itinerary_ids
-├── validated_itinerary_ids
-├── recommendation
-├── pending_proposal_id
-├── approval_status
-├── error
-└── final_outcome
+```mermaid
+flowchart LR
+    LOOP["Bounded Python loop"] --> REQUEST["Provider-independent ModelRequest"]
+    REQUEST --> MODEL["DecisionModel adapter"]
+    MODEL --> DECISION{"Typed AgentDecision"}
+    DECISION -->|"call_tool"| DISPATCH["Read-only whitelist dispatcher"]
+    DISPATCH --> TOOLS["Five Phase 4 adapters"]
+    TOOLS --> OBS["Safe typed observation"]
+    OBS --> STATE["Immutable AgentRunState"]
+    STATE --> LOOP
+    DECISION -->|"ask_information"| WAIT["Awaiting information"]
+    DECISION -->|"finish"| DONE["Completed outcome"]
 ```
 
-Store identifiers and structured facts in state. Do not use formatted prompt text as the durable source of truth.
+`DecisionModel` is application-owned, so recorded fixtures and an Ollama HTTP
+adapter can be exchanged without changing loop behavior. The model receives
+only conversation messages, safe observations and copied Phase 4 name,
+description and input-schema data. It never receives an engine, session,
+repository, SQL, credentials, API routes or write capability.
+
+Phase 6 introduces `AgentRunState`, a strict immutable Pydantic model for one
+in-process run. It stores control facts that messages cannot safely represent:
+status, budget, deadline, turn and malformed-output counts, call fingerprints,
+typed observations, final outcome, information request or safe failure. Messages
+are model context; state is the application's control record. This state is
+transient and is not a Phase 7 graph schema or a Phase 8 durable checkpoint.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Running
+    Running --> Running: safe tool observation or bounded malformed retry
+    Running --> AwaitingInformation: ask_information
+    Running --> Completed: finish
+    Running --> Failed: budget, deadline, repeat, unknown tool, or safe error
+    AwaitingInformation --> [*]
+    Completed --> [*]
+    Failed --> [*]
+```
+
+State validators reject incompatible terminal fields and unknown evidence
+references. The loop uses a finite `for` range and rechecks its absolute
+deadline around model and tool calls. Canonical SHA-256 fingerprints detect an
+identical tool name and argument object without retaining another raw copy in
+the repeat guard.
+
+```mermaid
+flowchart TD
+    TURN["Before each turn"] --> DEADLINE{"Deadline reached?"}
+    DEADLINE -->|"yes"| FAIL1["Safe failure"]
+    DEADLINE -->|"no"| MODEL_CALL["Request one typed decision"]
+    MODEL_CALL --> MALFORMED{"Malformed?"}
+    MALFORMED -->|"retry remains"| RETRY["Record safe correction and continue"]
+    MALFORMED -->|"budget spent"| FAIL2["Safe failure"]
+    MODEL_CALL --> CALL{"Tool call?"}
+    CALL --> REPEAT{"Fingerprint already seen?"}
+    REPEAT -->|"yes"| FAIL3["Safe failure before execution"]
+    REPEAT -->|"no"| ONE["Execute once with least privilege"]
+    ONE --> TURN
+```
+
+Phase 7 will reproduce the same recorded behavior with explicit graph nodes,
+edges and inspectable graph state. It may adapt messages or models with minimal
+LangChain components, but LangGraph will not replace tool authorization,
+Pydantic validation or deterministic domain rules.
 
 ## Initial tool catalogue
 

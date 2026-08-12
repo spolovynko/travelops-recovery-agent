@@ -57,13 +57,18 @@ demonstrated.
 
 ## D-006 — Defer the model provider
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Context:** The orchestration and tool contracts should not depend on one provider's response objects, while a real provider is eventually needed for tool-calling experiments.
 
-**Decision:** Define a small application-owned model interface in Phase 6, then choose and document a provider using current availability, structured-output support, cost, and testing needs.
+**Decision:** Define a small application-owned model interface in Phase 6. Use
+recorded decisions as the required test provider and offer a local-only Ollama
+HTTP adapter as an experiment. Require an explicit Ollama model; do not select a
+default until a candidate reliably satisfies the structured contract.
 
-**Consequence:** No model SDK enters the foundation phases without a demonstrated need.
+**Consequence:** The loop has no provider SDK dependency and remains testable
+offline. Live model suitability is an evaluated configuration choice rather
+than an architectural dependency.
 
 ## D-007 — Commit to an advanced track after the first release
 
@@ -456,6 +461,91 @@ from model tools and storage. Some deliberate mapping code exists at the API
 boundary.
 
 **Revisit when:** Authentication or generated client contracts are introduced.
+
+## D-028 — Own the first agent loop and state in normal Python
+
+**Status:** Accepted
+
+**Context:** Phase 6 must make every model call, state change, tool dispatch and
+stop condition visible before an orchestration framework manages them.
+
+**Decision:** Use a small `DecisionModel` protocol, a discriminated Pydantic
+decision union, an immutable transient `AgentRunState`, and an explicit bounded
+`for` loop. Do not add PydanticAI, LangChain or LangGraph in this phase.
+
+**Alternatives:** Adopt an agent framework immediately, or use conversation
+messages and provider response objects as implicit state.
+
+**Consequences:** The mechanism is easy to inspect and test, but persistence,
+resumption and graph visualization remain deliberately absent.
+
+**Revisit when:** Phase 7 reproduces this behavior as an explicit LangGraph.
+
+## D-029 — Fail closed around tool dispatch and run budgets
+
+**Status:** Accepted
+
+**Context:** A model can request unknown tools, repeat a call, return malformed
+data, or consume unbounded time and turns. Prompt instructions cannot enforce
+these limits.
+
+**Decision:** Dispatch only the complete five-tool Phase 4 whitelist. Give each
+call exactly its registered read permission, fingerprint canonical calls, stop
+repeats before execution, cap turns and malformed retries, and check one absolute
+deadline before and after external calls. Do not retry a tool automatically.
+
+**Alternatives:** Trust the requested tool name, retry indefinitely, or infer a
+nearby tool/argument when output is invalid.
+
+**Consequences:** Failures are deterministic and safe, at the cost of requiring
+the operator or a later workflow policy to resume some recoverable cases.
+
+**Revisit when:** Phase 11 measures error-specific retry policies.
+
+## D-030 — Make recorded scenarios the Phase 6 provider gate
+
+**Status:** Accepted
+
+**Context:** A phase gate must be repeatable without network access, credentials,
+model downloads, sampling variance or a particular provider installation.
+
+**Decision:** Record typed model decisions and Phase 4-shaped tool envelopes for
+success, information request, direct finish, tool failure, unknown tool, repeat,
+malformed recovery/exhaustion, turn exhaustion and deadline exhaustion. Validate
+recorded arguments against the real Phase 4 input models.
+
+**Alternatives:** Mock provider wire responses only, require a live model, or
+assert only the final prose.
+
+**Consequences:** Loop behavior has byte-for-byte deterministic evidence. Model
+quality remains a separate evaluation problem rather than a hidden unit-test
+dependency.
+
+**Revisit when:** A reviewed live-model benchmark is added in Phase 11.
+
+## D-031 — Keep Ollama optional, local and behind the model boundary
+
+**Status:** Accepted
+
+**Context:** Ollama offers a useful local structured-output experiment, but the
+agent core should not inherit a provider SDK or silently trust an installed
+model. Phase 6 smoke checks found that the available Qwen 2.5 7B and 14B models
+did not reliably produce the strict decision shape.
+
+**Decision:** Implement the `/api/chat` adapter with the Python standard-library
+HTTP client, a strict response limit, non-streaming schema-constrained requests,
+and a loopback-only endpoint. Require an explicit model name and configure no
+default. Treat malformed content as a safe provider-independent model error.
+
+**Alternatives:** Add the Ollama Python SDK, weaken the application contract,
+choose one unverified local model, or make Ollama required for tests.
+
+**Consequences:** No dependency or lockfile change is needed and provider faults
+cannot leak raw responses. A future model must earn selection through contract
+and task evaluation.
+
+**Revisit when:** A local model passes a repeatable decision and task benchmark,
+or another provider is evaluated against the same `DecisionModel` protocol.
 
 ## Decision template
 

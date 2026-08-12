@@ -2,10 +2,10 @@
 
 ## Current state
 
-- **Current phase:** Phase 5 — visual operator dashboard
+- **Current phase:** Phase 6 — first explicit agent loop
 - **Status:** Complete
-- **Last completed result:** A verified read-only React operations console for manual disruption investigation without an LLM
-- **Next gate:** Review and commit the intended Phase 5 Git scope, then begin Phase 6 only after an explicit request
+- **Last completed result:** A verified provider-independent, bounded read-only model-and-tool loop with deterministic recorded scenarios
+- **Next gate:** Review and commit the intended Phase 6 Git scope, then begin Phase 7 only after an explicit request
 
 ## Concepts confirmed in Phase 0
 
@@ -63,9 +63,20 @@
 - Deterministic search separated from backend validation and bookability
 - Component, browser, API, application, and real-database test responsibilities
 
+## Concepts confirmed in Phase 6
+
+- Model decisions versus application-enforced execution and domain validation
+- Provider-independent protocols versus provider-specific HTTP adapters
+- Discriminated structured outcomes: call a tool, ask for information, or finish
+- Typed control state versus conversation messages and durable checkpoints
+- Safe Phase 4 schema projection separated from executable tool injection
+- Finite turns, absolute deadlines, malformed retries and repeated-call fingerprints
+- Deterministic recorded providers versus live-model quality evaluation
+- Manual loop mechanics as the baseline for Phase 7 LangGraph comparison
+
 ## Parking lot
 
-- Model provider selection belongs to Phase 6.
+- A trusted default model remains unselected until it passes a repeatable benchmark.
 - LangGraph and any justified minimal LangChain integration belong to Phase 7.
 - The visual operator dashboard and React baseline were completed in Phase 5.
 - Context engineering through MCP are committed as the advanced track in Phases 12–20.
@@ -272,3 +283,46 @@ production authentication, and real airline integrations.
 
 **Next smallest step:** Review and commit the Phase 5 scope. Begin Phase 6 only
 after an explicit request.
+
+## Session 7 — 2026-08-12
+
+**Phase:** Phase 6 — first explicit agent loop
+
+**Built:** Added strict Pydantic decision and transient run-state contracts, an
+application-owned `DecisionModel` protocol, safe projection of all five Phase 4
+tool schemas, an exact read-only dispatcher, canonical repeated-call
+fingerprints, a finite Python loop with deadline/turn/malformed guards, ten
+recorded scenarios, an offline CLI, and an optional local-only Ollama HTTP
+adapter. Added Phase 6 architecture, decisions, run instructions and learning
+notes. No API route, frontend behavior, database schema or dependency changed.
+
+**Verified:** Lock check and locked sync; intended imports; 185 focused agent and
+tool tests; 354 non-database repository tests; all 18 isolated PostgreSQL
+integration tests against a disposable `travelops_test`; Ruff lint and format;
+strict mypy over 92 source files; wheel and source-distribution builds; frontend
+clean install, Prettier, TypeScript and Oxlint; seven component tests; production
+Vite build; and one Playwright operator journey. Dependency files, Phase 5 API
+and frontend source were unchanged. The temporary PostgreSQL container and test
+URL were removed after the gate.
+
+**Concepts confirmed:** An agent loop is model request, typed decision,
+application guard, optional tool execution, safe observation and repeat; JSON
+Schema guides the model while Pydantic and the whitelist enforce contracts;
+messages are context rather than trusted control state; bounded recovery prevents
+unlimited context growth; deterministic recordings test orchestration without
+claiming live-model quality; deterministic services, not model reasoning, decide
+domain validity.
+
+**Still unclear:** No local model has earned default selection. Smoke checks of
+the installed Qwen 2.5 7B and 14B models did not reliably satisfy the strict
+decision schema, so the Ollama adapter remains explicit and optional.
+
+**Decisions:** [D-006 — Defer the model provider](decisions.md#d-006--defer-the-model-provider); [D-028 — Own the first agent loop and state in normal Python](decisions.md#d-028--own-the-first-agent-loop-and-state-in-normal-python); [D-029 — Fail closed around tool dispatch and run budgets](decisions.md#d-029--fail-closed-around-tool-dispatch-and-run-budgets); [D-030 — Make recorded scenarios the Phase 6 provider gate](decisions.md#d-030--make-recorded-scenarios-the-phase-6-provider-gate); [D-031 — Keep Ollama optional, local and behind the model boundary](decisions.md#d-031--keep-ollama-optional-local-and-behind-the-model-boundary).
+
+**Parked:** LangGraph and minimal justified LangChain adaptation, durable
+checkpoints, SSE and UI integration, recommendation evidence, model-quality
+benchmarks, provider retry policy, approval and booking writes.
+
+**Next smallest step:** Review and commit the Phase 6 scope. Begin Phase 7 only
+after an explicit request, then reproduce these recorded outcomes with explicit
+graph state, nodes, edges and terminal routing.

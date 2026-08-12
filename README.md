@@ -215,10 +215,45 @@ passenger party, journey, disruption, status and policy, search scheduled
 alternatives, and request deterministic validation. No action mutates a booking
 or recovery case. See [the visual Phase 5 workflow](docs/notes/phase-5.md).
 
+## Phase 6 recorded agent loop
+
+Phase 6 adds the first explicit model-and-tool loop without LangGraph or
+PydanticAI. Pydantic validates the provider-independent decisions and transient
+run state; ordinary Python performs the bounded loop; the existing Phase 4
+adapters remain the only executable tools.
+
+Run the deterministic demonstration without a model server or database:
+
+```powershell
+# Show the recorded scenarios
+uv run --locked python -m travelops_recovery_agent.agent.cli --list
+
+# Model decision -> tool result -> model finish
+uv run --locked python -m travelops_recovery_agent.agent.cli `
+  successful_investigation
+
+# Inspect bounded failure behavior
+uv run --locked python -m travelops_recovery_agent.agent.cli `
+  repeated_tool_call
+uv run --locked python -m travelops_recovery_agent.agent.cli `
+  malformed_exhaustion
+```
+
+An optional local-only Ollama adapter implements the same model interface. It
+uses Ollama's HTTP API directly, adds no SDK dependency, accepts only a loopback
+HTTP endpoint, and requires the caller to choose a model explicitly. No local
+model is configured as a trusted default: the available 7B and 14B models did
+not reliably satisfy the strict decision contract during the Phase 6 smoke
+check. Recorded fixtures are therefore the reproducible completion evidence.
+
+See [the Phase 6 notes](docs/notes/phase-6.md) for the loop, typed state,
+budgets, safety boundaries, diagrams, and the planned Phase 7 comparison.
+
 ## Current status
 
-Phase 5 implements the visual manual-investigation baseline. A typed React UI
-uses four read-only FastAPI routes to load the queue and case workspace, search
-deterministic alternatives, and display structured validation. Phase 4 tools
-remain available for future agents, but browser routes call application services
-directly. No LLM, agent loop, recommendation, approval or booking write exists.
+Phase 6 implements a provider-independent, bounded read-only agent loop. It can
+call exactly the five Phase 4 tools, ask an operator for missing information, or
+finish with a typed outcome. Deterministic recordings cover success and every
+important stop condition without a live model. The Phase 5 browser and API are
+unchanged; the loop is not yet connected to the UI or persisted. LangGraph,
+recommendations, approval and booking writes remain later phases.
