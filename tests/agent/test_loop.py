@@ -5,12 +5,13 @@ from typing import cast
 
 from pydantic import BaseModel, ConfigDict
 
-from travelops_recovery_agent.agent.loop import AgentLoop, build_model_request
-from travelops_recovery_agent.agent.model import (
+from travelops_recovery_agent.agent.decision_model import (
     DecisionModelError,
     ModelErrorCode,
     ModelRequest,
 )
+from travelops_recovery_agent.agent.loop import AgentLoop
+from travelops_recovery_agent.agent.model_request import build_model_request
 from travelops_recovery_agent.agent.models import (
     AgentDecision,
     AgentFailureCode,

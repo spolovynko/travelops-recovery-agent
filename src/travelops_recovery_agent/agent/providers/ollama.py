@@ -15,7 +15,7 @@ from pydantic import (
     model_validator,
 )
 
-from travelops_recovery_agent.agent.model import (
+from travelops_recovery_agent.agent.decision_model import (
     DecisionModelError,
     ModelErrorCode,
     ModelRequest,

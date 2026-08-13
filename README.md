@@ -249,11 +249,36 @@ check. Recorded fixtures are therefore the reproducible completion evidence.
 See [the Phase 6 notes](docs/notes/phase-6.md) for the loop, typed state,
 budgets, safety boundaries, diagrams, and the planned Phase 7 comparison.
 
+## Phase 7 LangGraph workflow
+
+Phase 7 reproduces the complete Phase 6 behavior as a compiled LangGraph with
+typed state, runtime context, eight named nodes, conditional edges, explicit
+completion and failure terminals, and complete state inspection after every
+node. The model, dispatcher, tools, fingerprints, budgets, safe failures, and
+domain validation remain the existing application-owned implementations.
+
+The deterministic equivalence gate runs every recorded scenario through the
+manual loop and graph independently and requires byte-for-byte identical trusted
+terminal state:
+
+```powershell
+uv run --locked pytest tests/agent/test_graph.py
+```
+
+LangGraph is the orchestration runtime; the full LangChain agent framework is
+not used. Application code directly uses only LangChain Core's `RunnableConfig`
+type for strict graph invocation typing. The graph is compiled without a
+checkpointer, so persistence and resumption remain Phase 8 work.
+
+See [the detailed Phase 7 learning notes](docs/notes/phase-7.md) for the complete
+node map, state evolution, provider and tool boundaries, terminology, decisions,
+equivalence proof, and Phase 7/Phase 8 comparison.
+
 ## Current status
 
-Phase 6 implements a provider-independent, bounded read-only agent loop. It can
-call exactly the five Phase 4 tools, ask an operator for missing information, or
-finish with a typed outcome. Deterministic recordings cover success and every
-important stop condition without a live model. The Phase 5 browser and API are
-unchanged; the loop is not yet connected to the UI or persisted. LangGraph,
-recommendations, approval and booking writes remain later phases.
+Phase 7 implements the provider-independent, bounded read-only workflow in both
+manual-loop and explicit LangGraph forms. Deterministic recordings cover success
+and every important stop condition without a live model, and both orchestrators
+produce identical trusted results. The Phase 5 browser and API are unchanged;
+the graph is not yet connected to the UI or persisted. Durable checkpoints,
+recommendations, approval, and booking writes remain later phases.

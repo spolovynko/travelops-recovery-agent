@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from travelops_recovery_agent.agent.model import (
+from travelops_recovery_agent.agent.decision_model import (
     DecisionModel,
     DecisionModelError,
     ModelErrorCode,

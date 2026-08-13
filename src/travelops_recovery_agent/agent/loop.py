@@ -5,12 +5,12 @@ from datetime import UTC, datetime
 
 from pydantic import ValidationError
 
-from travelops_recovery_agent.agent.model import (
+from travelops_recovery_agent.agent.decision_model import (
     DecisionModel,
     DecisionModelError,
     ModelErrorCode,
-    ModelRequest,
 )
+from travelops_recovery_agent.agent.model_request import build_model_request
 from travelops_recovery_agent.agent.models import (
     AgentDecision,
     AgentFailureCode,
@@ -29,7 +29,6 @@ from travelops_recovery_agent.agent.tools import (
     ReadOnlyToolDispatcher,
     UnknownToolError,
     fingerprint_tool_call,
-    get_model_tool_definitions,
 )
 from travelops_recovery_agent.tools.contracts import ToolExecutionContext
 
@@ -38,19 +37,6 @@ def utc_now() -> datetime:
     """Return the current timezone-aware UTC time."""
 
     return datetime.now(UTC)
-
-
-def build_model_request(state: AgentRunState) -> ModelRequest:
-    """Build one bounded model input from explicit state and safe tool schemas."""
-
-    return ModelRequest(
-        run_id=state.run_id,
-        case_id=state.case_id,
-        turn=state.current_turn,
-        messages=state.messages,
-        observations=state.tool_observations,
-        tools=get_model_tool_definitions(),
-    )
 
 
 def _replace_state(state: AgentRunState, **updates: object) -> AgentRunState:

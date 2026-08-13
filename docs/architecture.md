@@ -117,8 +117,9 @@ Phase 6 introduces `AgentRunState`, a strict immutable Pydantic model for one
 in-process run. It stores control facts that messages cannot safely represent:
 status, budget, deadline, turn and malformed-output counts, call fingerprints,
 typed observations, final outcome, information request or safe failure. Messages
-are model context; state is the application's control record. This state is
-transient and is not a Phase 7 graph schema or a Phase 8 durable checkpoint.
+are model context; state is the application's control record. Phase 7 embeds
+this trusted value inside transient graph state; it is still not a Phase 8
+durable checkpoint.
 
 ```mermaid
 stateDiagram-v2
@@ -153,10 +154,43 @@ flowchart TD
     ONE --> TURN
 ```
 
-Phase 7 will reproduce the same recorded behavior with explicit graph nodes,
-edges and inspectable graph state. It may adapt messages or models with minimal
-LangChain components, but LangGraph will not replace tool authorization,
-Pydantic validation or deterministic domain rules.
+## Phase 7 LangGraph path
+
+```mermaid
+flowchart TD
+    START(["START"]) --> INTAKE["intake"]
+    INTAKE --> REASON["model_reasoning"]
+    REASON --> VALIDATE["decision_validation"]
+    VALIDATE -->|"call_tool"| TOOL["tool_execution"]
+    VALIDATE -->|"ask_information"| INFO["information_or_escalation"]
+    VALIDATE -->|"finish"| OUTCOME["outcome_handling"]
+    TOOL --> OUTCOME
+    OUTCOME -->|"continue"| REASON
+    OUTCOME -->|"terminal outcome"| COMPLETE["completion"]
+    INFO --> COMPLETE
+    INTAKE -->|"invalid"| FAIL["safe_failure"]
+    REASON -->|"guard or model failure"| FAIL
+    VALIDATE -->|"invalid or exhausted"| FAIL
+    TOOL -->|"guard or tool failure"| FAIL
+    COMPLETE --> END(["END"])
+    FAIL --> END
+```
+
+`AgentGraphState` contains the trusted `AgentRunState` plus safe node history,
+one typed route, a pending typed decision, a provider-neutral model-error code,
+and a minimized pending failure. The model, dispatcher, actor identity, and
+clock are injected through frozen LangGraph runtime context and are absent from
+inspectable state.
+
+The graph reuses the Phase 6 `DecisionModel`, recorded fixtures, Ollama adapter,
+request builder, exact dispatcher, fingerprints, budgets, safe observations,
+and terminal contracts. Conditional edges make all permitted transitions
+visible. `RecoveryGraphRunner.stream_states` yields complete state after every
+sequential super-step without exposing chain-of-thought.
+
+LangGraph does not replace tool authorization, Pydantic validation,
+deterministic application services, or domain rules. The graph is compiled
+without a checkpointer; persistence and resumption remain Phase 8.
 
 ## Initial tool catalogue
 

@@ -7,7 +7,7 @@ from typing import cast
 import pytest
 from pydantic import BaseModel, ConfigDict, JsonValue
 
-from travelops_recovery_agent.agent.model import ModelRequest
+from travelops_recovery_agent.agent.decision_model import ModelRequest
 from travelops_recovery_agent.agent.models import CallToolDecision
 from travelops_recovery_agent.agent.tools import (
     ExecutableReadOnlyTool,

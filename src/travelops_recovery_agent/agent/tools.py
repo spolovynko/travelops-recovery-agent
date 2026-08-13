@@ -9,7 +9,7 @@ from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel
 
-from travelops_recovery_agent.agent.model import ModelToolDefinition
+from travelops_recovery_agent.agent.decision_model import ModelToolDefinition
 from travelops_recovery_agent.agent.models import CallToolDecision
 from travelops_recovery_agent.tools.contracts import (
     ToolExecutionContext,

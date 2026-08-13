@@ -547,6 +547,93 @@ and task evaluation.
 **Revisit when:** A local model passes a repeatable decision and task benchmark,
 or another provider is evaluated against the same `DecisionModel` protocol.
 
+## D-032 — Express Phase 6 as an explicit LangGraph StateGraph
+
+**Status:** Accepted
+
+**Context:** Phase 7 must make orchestration topology and intermediate state
+inspectable without changing the verified provider, tool, validation, or safety
+contracts established by Phase 6.
+
+**Decision:** Build a low-level LangGraph `StateGraph` with typed state, eight
+named nodes, explicit conditional-edge maps, safe node history, and separate
+completion and failure terminals. Retain the manual loop as comparison code. Do
+not use a prebuilt LangChain agent or PydanticAI.
+
+**Alternatives:** Replace Phase 6 with `langchain.create_agent`, keep only the
+manual loop, or let nodes return unrestricted dynamic destinations.
+
+**Consequences:** Routing and state evolution are directly inspectable and ready
+for later checkpointing. More explicit node and edge code is required, but the
+application keeps control of every legal transition.
+
+**Revisit when:** A future workflow shape demonstrates that a prebuilt agent or
+subgraph removes material code without weakening the boundaries.
+
+## D-033 — Keep executable dependencies in LangGraph runtime context
+
+**Status:** Accepted
+
+**Context:** Model clients, dispatchers and clocks are required by nodes but are
+not investigation facts and must not enter inspectable or future persisted state.
+
+**Decision:** Put the application-owned `DecisionModel`, exact read-only
+dispatcher, actor identifier, and injectable clock in frozen `AgentGraphContext`.
+Keep graph state limited to the validated run ledger and safe routing data.
+
+**Alternatives:** Store executable objects in graph state, use globals, or let
+nodes construct provider and tool dependencies themselves.
+
+**Consequences:** State snapshots contain no executable services or credentials,
+and dependencies remain injectable for deterministic testing. Callers must
+provide a context for each run.
+
+**Revisit when:** Phase 8 defines which context values must be reconstructed for
+durable resumption.
+
+## D-034 — Make recorded manual-loop equivalence the Phase 7 gate
+
+**Status:** Accepted
+
+**Context:** Framework adoption is not evidence of correctness. Phase 7 needs to
+prove that graph routing preserves the already verified application behavior.
+
+**Decision:** Replay all ten Phase 6 scenarios independently through both
+orchestrators and require identical status, outcome, information request,
+failure code, tool sequence, observations, evidence, model requests, and complete
+serialized terminal `AgentRunState`.
+
+**Alternatives:** Assert only graph terminal status, compare final prose, or use a
+live probabilistic model as the primary gate.
+
+**Consequences:** The graph has deterministic byte-for-byte behavioral evidence.
+The suite intentionally says nothing about live-model quality.
+
+**Revisit when:** The manual loop is retired after later durable behavior has an
+equally strong stable reference and migration proof.
+
+## D-035 — Defer LangGraph checkpointing to Phase 8
+
+**Status:** Accepted
+
+**Context:** LangGraph supports checkpoint persistence, interrupts and resume,
+but these introduce thread identity, serialization, storage lifecycle,
+at-least-once effects, and restart semantics beyond Phase 7's equivalence goal.
+
+**Decision:** Compile the Phase 7 graph without a checkpointer. Expose in-process
+state streaming for inspection only. Add no checkpoint backend dependency or
+workflow tables.
+
+**Alternatives:** Add an in-memory saver as a placeholder, persist checkpoints in
+the business schema now, or combine graph adoption and durability in one phase.
+
+**Consequences:** Phase 7 remains small and deterministic but cannot resume after
+a process exit. Phase 8 must add durability explicitly rather than inheriting an
+accidental checkpoint design.
+
+**Revisit when:** Phase 8 begins and defines thread identifiers, persistence,
+resumption, cancellation, progress events, and duplicate-effect protection.
+
 ## Decision template
 
 ```markdown

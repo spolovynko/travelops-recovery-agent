@@ -5,13 +5,13 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from pydantic import JsonValue, ValidationError
 
-from travelops_recovery_agent.agent.loop import build_model_request
-from travelops_recovery_agent.agent.model import (
+from travelops_recovery_agent.agent.decision_model import (
     DecisionModel,
     DecisionModelError,
     ModelErrorCode,
     ModelRequest,
 )
+from travelops_recovery_agent.agent.model_request import build_model_request
 from travelops_recovery_agent.agent.models import (
     AgentRunState,
     CallToolDecision,

@@ -2,10 +2,10 @@
 
 ## Current state
 
-- **Current phase:** Phase 6 — first explicit agent loop
+- **Current phase:** Phase 7 — LangGraph orchestration
 - **Status:** Complete
-- **Last completed result:** A verified provider-independent, bounded read-only model-and-tool loop with deterministic recorded scenarios
-- **Next gate:** Review and commit the intended Phase 6 Git scope, then begin Phase 7 only after an explicit request
+- **Last completed result:** An explicit, inspectable LangGraph workflow that is behaviorally equivalent to the verified Phase 6 manual loop
+- **Next gate:** Review the intended Phase 7 Git scope; begin durable checkpointing and resumption only as an explicitly requested Phase 8
 
 ## Concepts confirmed in Phase 0
 
@@ -74,10 +74,23 @@
 - Deterministic recorded providers versus live-model quality evaluation
 - Manual loop mechanics as the baseline for Phase 7 LangGraph comparison
 
+## Concepts confirmed in Phase 7
+
+- Graph state as a typed transient workflow clipboard, not hidden model memory
+- Nodes as small named responsibilities and edges as the permitted routes between them
+- Conditional edges, explicit terminal handling, graph compilation, and framework recursion protection
+- Reducers as channel-specific merge rules for partial state updates
+- Runtime context as the safe home for executable dependencies that must never enter model-visible state
+- Model proposals versus graph routing versus deterministic application validation
+- State inspection and node history without storing or exposing chain-of-thought
+- Recorded manual-loop/graph equivalence as the framework-adoption gate
+- Minimal LangChain Core usage for one exact runtime configuration type, not a prebuilt agent
+- Transient Phase 7 orchestration versus Phase 8 checkpoint durability and resumption
+
 ## Parking lot
 
 - A trusted default model remains unselected until it passes a repeatable benchmark.
-- LangGraph and any justified minimal LangChain integration belong to Phase 7.
+- Durable LangGraph checkpoints, thread identity, interruption and resumption belong to Phase 8.
 - The visual operator dashboard and React baseline were completed in Phase 5.
 - Context engineering through MCP are committed as the advanced track in Phases 12–20.
 - Voice and real airline integrations remain outside the committed track.
@@ -326,3 +339,52 @@ benchmarks, provider retry policy, approval and booking writes.
 **Next smallest step:** Review and commit the Phase 6 scope. Begin Phase 7 only
 after an explicit request, then reproduce these recorded outcomes with explicit
 graph state, nodes, edges and terminal routing.
+
+## Session 8 — 2026-08-13
+
+**Phase:** Phase 7 — LangGraph orchestration and minimal LangChain integration
+
+**Built:** Reproduced the Phase 6 recovery loop as an explicit compiled
+LangGraph `StateGraph` with typed transient state, separately injected runtime
+context, append-only node history, eight named application nodes, conditional
+edges, verified terminal routing and inspectable state snapshots. Reused the
+existing `DecisionModel`, strict decision contracts, ten recorded scenarios,
+Phase 4 dispatcher, call fingerprints, budgets and safe failures. Extracted one
+shared model-request builder so the manual loop and graph receive identical
+safe context. Renamed the provider boundary from `model.py` to the clearer
+`decision_model.py`. Added no checkpointer, API route, frontend integration,
+write capability, default model or multi-agent behavior.
+
+**Verified:** Lock check and locked environment sync; import smoke test;
+30 focused Phase 7 tests; 215 agent/tool tests; 384 non-integration tests; all
+18 isolated PostgreSQL integration tests; exact manual-loop/graph equivalence
+for all ten recordings; Ruff lint and format; strict mypy over 95 source files;
+wheel and source-distribution builds; frontend clean install, Prettier,
+TypeScript, Oxlint, seven component tests, production build and one Playwright
+journey. Python and npm dependency audits reported no known vulnerabilities;
+high-confidence secret findings were reviewed as placeholders or deliberately
+unsafe test data. Phase 5 API and frontend source remained unchanged, and the
+temporary database container, Playwright results and test listeners were
+removed. The audit required raising the development-only pytest range from 8.x
+to `>=9.0.3,<10`; the lock selected 9.1.1 and the complete gate passed again.
+
+**Concepts confirmed:** State, nodes, edges, reducers, routing, compilation,
+runtime context, terminal states, state streaming and recursion limits;
+LangGraph orchestration versus LangChain integrations; model proposals versus
+application authority; inspectability without chain-of-thought; transient
+execution versus future checkpoint durability.
+
+**Still unclear:** Nothing required by the Phase 7 learning contract. A model
+provider still needs a separate quality benchmark before it can become a
+default.
+
+**Decisions:** [D-032 — Express Phase 6 as an explicit LangGraph StateGraph](decisions.md#d-032--express-phase-6-as-an-explicit-langgraph-stategraph); [D-033 — Keep executable dependencies in LangGraph runtime context](decisions.md#d-033--keep-executable-dependencies-in-langgraph-runtime-context); [D-034 — Make recorded manual-loop equivalence the Phase 7 gate](decisions.md#d-034--make-recorded-manual-loop-equivalence-the-phase-7-gate); [D-035 — Defer LangGraph checkpointing to Phase 8](decisions.md#d-035--defer-langgraph-checkpointing-to-phase-8).
+
+**Parked:** Durable checkpoints and resumption, SSE, background execution, API
+and UI integration, new recommendation logic, inventory, pricing, ticket rules,
+approval, booking writes, persistent workflow auditing, multi-agent design,
+provider benchmarks and production integrations.
+
+**Next smallest step:** Review the Phase 7 diff and learning notes. Begin Phase
+8 durability only after an explicit request; do not add checkpointing as Phase
+7 cleanup.
