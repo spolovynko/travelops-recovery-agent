@@ -5,6 +5,7 @@ import { ApiError, recoveryApi } from "../../api/client";
 import type {
   AlternativeCandidate,
   ItineraryValidation,
+  RecommendationOption,
   RecoveryCaseWorkspace,
 } from "../../api/models";
 import { ErrorState, LoadingState } from "../../components/AsyncState";
@@ -156,8 +157,16 @@ function Workspace({ data }: { data: RecoveryCaseWorkspace }) {
             number="03"
             title="Options"
             id="options-heading"
-            subtitle="Deterministic search and validation"
+            subtitle="Validated recommendation and manual exploration"
           />
+          <RecommendationPanel data={data} />
+          <div className="explorer-heading">
+            <h3>Manual schedule explorer</h3>
+            <p>
+              Candidate generation is separate from the validated
+              recommendation.
+            </p>
+          </div>
           <form className="search-form" onSubmit={submit}>
             <div className="route-lock">
               <span>{defaults.origin}</span>
@@ -269,15 +278,143 @@ function Workspace({ data }: { data: RecoveryCaseWorkspace }) {
             </ol>
           </div>
           <div className="phase-boundary">
-            <strong>Phase 8 boundary</strong>
+            <strong>Phase 9 boundary</strong>
             <p>
-              Durable investigation remains read-only. No recommendation,
-              booking write, seat claim or approval occurs here.
+              Recommendations are evidence-grounded and read-only. No booking
+              write, seat claim, approval or reservation occurs here.
             </p>
           </div>
         </aside>
       </div>
     </div>
+  );
+}
+
+function RecommendationPanel({ data }: { data: RecoveryCaseWorkspace }) {
+  const result = data.recommendation;
+  const rejected = result.option_results.filter(
+    (option) => !option.validation.valid,
+  );
+  if (!result.recommended_itinerary)
+    return (
+      <section className="recommendation escalation" aria-live="polite">
+        <p className="eyebrow">Operator escalation required</p>
+        <h3>
+          {result.outcome === "insufficient_evidence"
+            ? "Evidence is insufficient"
+            : "No safe recommendation exists"}
+        </h3>
+        <p>{result.escalation_reason}</p>
+        <strong>
+          Evidence completeness: {label(result.evidence_completeness)}
+        </strong>
+        {rejected.length > 0 && <RejectedOptions options={rejected} />}
+      </section>
+    );
+
+  return (
+    <section className="recommendation" aria-live="polite">
+      <div className="recommendation-title">
+        <div>
+          <p className="eyebrow">Validated recommendation</p>
+          <h3>Recommended itinerary</h3>
+        </div>
+        <StatusBadge status="passed" />
+      </div>
+      <RecommendationOptionCard
+        option={result.recommended_itinerary}
+        recommended
+      />
+      {result.other_validated_options.length > 0 && (
+        <div className="validated-alternatives">
+          <h3>Other validated options</h3>
+          {result.other_validated_options.map((option) => (
+            <RecommendationOptionCard key={option.option_id} option={option} />
+          ))}
+        </div>
+      )}
+      {rejected.length > 0 && <RejectedOptions options={rejected} />}
+      <details className="ranking-method">
+        <summary>How options were ranked</summary>
+        <p>{result.ranking_method}</p>
+        <p>Evidence completeness: {label(result.evidence_completeness)}</p>
+      </details>
+    </section>
+  );
+}
+
+function RecommendationOptionCard({
+  option,
+  recommended = false,
+}: {
+  option: RecommendationOption;
+  recommended?: boolean;
+}) {
+  return (
+    <article
+      className={`recommendation-option ${recommended ? "primary" : ""}`}
+    >
+      <header>
+        <strong>
+          {recommended
+            ? "Recommended"
+            : `Rank ${option.ranking_inputs?.rank_position}`}
+        </strong>
+        <code>{option.option_id}</code>
+      </header>
+      <ol>
+        {option.segments.map((segment) => (
+          <li key={segment.flight_id}>
+            <strong>{segment.service}</strong>
+            <span>
+              {segment.origin} → {segment.destination}
+            </span>
+            <small>
+              Arrives {exactDate(segment.operational_arrival)} ·{" "}
+              {segment.available_seats} seats
+            </small>
+          </li>
+        ))}
+      </ol>
+      <div className="recommendation-details">
+        <div>
+          <h4>Important tradeoffs</h4>
+          <ul>
+            {option.tradeoffs.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h4>Supporting evidence</h4>
+          <ul>
+            {option.evidence_references.map((item) => (
+              <li key={item.evidence_id}>
+                <code>{item.evidence_id}</code> {item.summary}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function RejectedOptions({ options }: { options: RecommendationOption[] }) {
+  return (
+    <details className="rejected-options" open>
+      <summary>Rejected options and reasons ({options.length})</summary>
+      {options.map((option) => (
+        <article key={option.option_id}>
+          <code>{option.option_id}</code>
+          <ul>
+            {option.validation.rejection_reasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+        </article>
+      ))}
+    </details>
   );
 }
 
@@ -492,7 +629,8 @@ function CandidateList({
               </p>
             ))}
             <div className="deferred-note">
-              Seat inventory and ticket rules: not evaluated
+              Seat inventory and ticket rules: not evaluated by this manual
+              explorer
             </div>
             <button
               className="button secondary"

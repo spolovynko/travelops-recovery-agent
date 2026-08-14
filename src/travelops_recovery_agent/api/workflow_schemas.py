@@ -6,6 +6,9 @@ from typing import Annotated, cast
 from pydantic import BaseModel, ConfigDict, Field
 
 from travelops_recovery_agent.agent.graph import AgentGraphState, GraphNode
+from travelops_recovery_agent.application.recommendation_models import (
+    RecommendationResult,
+)
 from travelops_recovery_agent.workflow.models import WorkflowRun, WorkflowStatus
 
 
@@ -41,6 +44,7 @@ class WorkflowRunView(WorkflowViewModel):
     failure_code: str | None
     failure_message: str | None
     last_event_sequence: Annotated[int, Field(ge=0)]
+    recommendation: RecommendationResult | None
 
 
 class WorkflowConflictView(WorkflowViewModel):
@@ -74,6 +78,7 @@ def workflow_run_view(
             failure_code=run.failure_code,
             failure_message=None,
             last_event_sequence=run.last_event_sequence,
+            recommendation=None,
         )
     agent_state = state["run_state"]
     outcome = agent_state.final_outcome
@@ -113,4 +118,5 @@ def workflow_run_view(
         failure_code=run.failure_code,
         failure_message=None if failure is None else failure.message,
         last_event_sequence=run.last_event_sequence,
+        recommendation=agent_state.recommendation,
     )

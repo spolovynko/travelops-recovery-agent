@@ -22,6 +22,8 @@ EXPECTED_BUSINESS_TABLES = {
     "disruption_policies",
     "disruption_policy_types",
     "recovery_cases",
+    "flight_availability_evidence",
+    "ticket_rule_evidence",
 }
 
 EXPECTED_WORKFLOW_TABLES = {
@@ -61,7 +63,7 @@ def test_alembic_builds_the_business_schema_from_zero(
         with engine.connect() as connection:
             assert (
                 connection.scalar(text("SELECT version_num FROM alembic_version"))
-                == "0002"
+                == "0003"
             )
 
         assert set(inspector.get_table_names(schema="workflow")) >= (
@@ -83,7 +85,7 @@ def test_alembic_builds_the_business_schema_from_zero(
 
 
 @pytest.mark.integration
-def test_alembic_upgrades_the_phase_seven_schema_without_changing_business_tables(
+def test_alembic_upgrades_phase_one_schema_with_phase_nine_evidence_tables(
     test_database_url: str,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -93,12 +95,17 @@ def test_alembic_upgrades_the_phase_seven_schema_without_changing_business_table
             command.downgrade(config, "base")
             command.upgrade(config, "0001")
             before = set(inspect(engine).get_table_names())
-            assert before >= EXPECTED_BUSINESS_TABLES
+            assert "flight_availability_evidence" not in before
+            assert "ticket_rule_evidence" not in before
             assert inspect(engine).get_table_names(schema="workflow") == []
 
             command.upgrade(config, "head")
 
-        assert set(inspect(engine).get_table_names()) == before
+        assert set(inspect(engine).get_table_names()) >= EXPECTED_BUSINESS_TABLES
+        assert set(inspect(engine).get_table_names()) - before == {
+            "flight_availability_evidence",
+            "ticket_rule_evidence",
+        }
         assert set(inspect(engine).get_table_names(schema="workflow")) >= (
             EXPECTED_WORKFLOW_TABLES
         )

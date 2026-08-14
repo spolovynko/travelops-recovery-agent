@@ -15,6 +15,10 @@ from pydantic import (
     model_validator,
 )
 
+from travelops_recovery_agent.application.recommendation_models import (
+    RecommendationResult,
+)
+
 DecisionText = Annotated[
     str,
     StringConstraints(strip_whitespace=True, min_length=1, max_length=500),
@@ -128,6 +132,7 @@ class AgentFailureCode(StrEnum):
     TOOL_FAILURE = "tool_failure"
     MODEL_FAILURE = "model_failure"
     IMPOSSIBLE_TRANSITION = "impossible_transition"
+    RECOMMENDATION_FAILURE = "recommendation_failure"
 
 
 class RunBudget(AgentContractModel):
@@ -199,6 +204,7 @@ class AgentRunState(AgentContractModel):
     final_outcome: AgentOutcome | None = None
     information_request: AskInformationDecision | None = None
     failure: SafeAgentFailure | None = None
+    recommendation: RecommendationResult | None = None
 
     @field_validator("started_at")
     @classmethod
@@ -260,4 +266,9 @@ class AgentRunState(AgentContractModel):
             evidence_ids = set(self.final_outcome.evidence_ids)
             if not evidence_ids.issubset(known_observations):
                 raise ValueError("final outcome references unknown evidence")
+        if self.recommendation is not None:
+            if self.status is not RunStatus.COMPLETED:
+                raise ValueError("recommendations require a completed run")
+            if self.recommendation.case_id != self.case_id:
+                raise ValueError("recommendation case must match the run case")
         return self

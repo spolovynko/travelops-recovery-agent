@@ -291,10 +291,46 @@ See [the detailed Phase 8 learning notes](docs/notes/phase-8.md) for checkpoint
 storage, identity, restart semantics, runtime reconstruction, safe events,
 reconnect, retention, tests, and diagrams.
 
+## Phase 9 validated recommendations
+
+After migration `0003` and deterministic seeding, every case workspace contains
+a repository-grounded recommendation. Application code validates stored-flight
+existence/status, route and operational times, a 45-minute synthetic connection
+minimum, complete-group seats, ticket rules, and disruption policy. Only options
+that pass every check can enter the stable ranking.
+
+The result shows evidence references, visible ranking inputs, tradeoffs, other
+validated options, and rejected options. Complete evidence with no passing
+option produces `no_safe_option`; missing required evidence produces
+`insufficient_evidence`. Both escalate without guessing.
+
+```powershell
+# With TRAVELOPS_DATABASE_URL configured as above
+uv run --locked alembic upgrade head
+uv run --locked python -m travelops_recovery_agent.persistence.cli seed `
+  --seed 42 --replace
+uv run --locked uvicorn travelops_recovery_agent.api.app:create_app `
+  --factory --host 127.0.0.1 --port 8000
+
+# In another terminal
+Set-Location frontend
+npm.cmd ci
+npm.cmd run dev
+```
+
+Open `/cases/CASE-0001`, or inspect
+`GET /api/v1/recovery-cases/CASE-0001/recommendation`. The production workflow
+uses a checkpointed deterministic recommendation node and needs no hosted model.
+It remains read-only.
+
+See [the Phase 9 learning notes](docs/notes/phase-9.md) for the
+candidate/validation/recommendation split, traceability, ranking, missing
+evidence, durable resume behavior, and Phase 10 boundary.
+
 ## Current status
 
-Phase 8 makes the provider-independent, bounded read-only LangGraph durable and
-observable. The checkpoint/restart and SSE/reconnect gates run against isolated
-PostgreSQL, while the original Phase 6 manual-loop/Phase 7 graph equivalence
-remains green. Recommendation quality, inventory, approval, and booking writes
-remain later phases.
+Phase 9 recommends only itineraries that pass every deterministic rule, shows
+their evidence and tradeoffs, and escalates no-safe-option or missing-evidence
+cases. The result is stored in the durable read-only workflow without changing
+the Phase 6–8 equivalence path. Proposal preparation, approval, inventory
+recheck, idempotent booking writes, and audit records remain Phase 10.

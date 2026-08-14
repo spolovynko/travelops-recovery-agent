@@ -58,6 +58,7 @@ class DurableWorkflowService:
         run_timeout: timedelta = timedelta(minutes=5),
         max_model_turns: int = 8,
         max_malformed_retries: int = 1,
+        enable_recommendations: bool = False,
     ) -> None:
         self._repository = repository
         self._checkpoint_store = checkpoint_store
@@ -68,7 +69,13 @@ class DurableWorkflowService:
         self._max_model_turns = max_model_turns
         self._max_malformed_retries = max_malformed_retries
         self._runner_id = f"runner-{uuid4().hex}"
-        self._graph = build_recovery_graph(checkpoint_store.saver)
+        self._initial_node: GraphNode = (
+            "validated_recommendation" if enable_recommendations else "intake"
+        )
+        self._graph = build_recovery_graph(
+            checkpoint_store.saver,
+            enable_recommendations=enable_recommendations,
+        )
 
     def create_run(self, case_id: str) -> WorkflowRun:
         now = self._clock()
@@ -229,7 +236,7 @@ class DurableWorkflowService:
         if snapshot.next:
             return cast(GraphNode, snapshot.next[0])
         if state is None:
-            return "intake"
+            return self._initial_node
         raise RuntimeError("terminal graph has no next node")
 
     def _emit_node_started(
@@ -306,6 +313,38 @@ class DurableWorkflowService:
                 {
                     "reason_code": "malformed_output",
                     "retry_count": run_state.malformed_retry_count,
+                },
+            )
+        if node == "validated_recommendation" and run_state.recommendation is not None:
+            recommendation = run_state.recommendation
+            recommended = recommendation.recommended_itinerary
+            self._repository.append_event(
+                run_id,
+                (
+                    WorkflowEventType.RECOMMENDATION_COMPLETED
+                    if recommended is not None
+                    else WorkflowEventType.RECOMMENDATION_ESCALATED
+                ),
+                now,
+                {
+                    "outcome": recommendation.outcome.value,
+                    "recommended_option_id": (
+                        None if recommended is None else recommended.option_id
+                    ),
+                    "validated_option_count": len(
+                        recommendation.other_validated_options
+                    )
+                    + (1 if recommended is not None else 0),
+                    "rejected_option_count": len(
+                        [
+                            item
+                            for item in recommendation.option_results
+                            if not item.validation.valid
+                        ]
+                    ),
+                    "evidence_completeness": (
+                        recommendation.evidence_completeness.value
+                    ),
                 },
             )
 

@@ -11,9 +11,11 @@ from travelops_recovery_agent.application.models import (
     PersistenceRecordCounts,
 )
 from travelops_recovery_agent.application.query_models import (
+    AvailabilityEvidence,
     CompleteBooking,
     FlightWithDisruptions,
     ResolvedDisruptionPolicy,
+    TicketRuleEvidence,
 )
 from travelops_recovery_agent.data.dataset import SyntheticDataset
 from travelops_recovery_agent.domain.models import (
@@ -43,10 +45,12 @@ from travelops_recovery_agent.persistence.models import (
     DisruptionPolicyRecord,
     DisruptionPolicyTypeRecord,
     DisruptionRecord,
+    FlightAvailabilityEvidenceRecord,
     FlightRecord,
     ItinerarySegmentRecord,
     PassengerRecord,
     RecoveryCaseRecord,
+    TicketRuleEvidenceRecord,
 )
 
 
@@ -89,6 +93,18 @@ class SqlAlchemyRecoveryDataRepository:
             recovery_cases=int(
                 self._session.scalar(select(func.count(RecoveryCaseRecord.id))) or 0
             ),
+            flight_availability_evidence=int(
+                self._session.scalar(
+                    select(func.count(FlightAvailabilityEvidenceRecord.flight_id))
+                )
+                or 0
+            ),
+            ticket_rule_evidence=int(
+                self._session.scalar(
+                    select(func.count(TicketRuleEvidenceRecord.booking_id))
+                )
+                or 0
+            ),
         )
 
     def add_dataset(self, dataset: SyntheticDataset) -> None:
@@ -101,6 +117,28 @@ class SqlAlchemyRecoveryDataRepository:
 
         self._session.add_all(
             booking_to_record(booking) for booking in dataset.bookings
+        )
+        self._session.flush()
+
+        self._session.add_all(
+            FlightAvailabilityEvidenceRecord(
+                flight_id=flight.id,
+                available_seats=6,
+                observed_at=dataset.metadata.generated_at,
+                source="synthetic-dataset:availability-v1",
+            )
+            for flight in dataset.flights
+        )
+        self._session.add_all(
+            TicketRuleEvidenceRecord(
+                booking_id=booking.id,
+                rebooking_allowed=True,
+                allowed_carrier_code="NV",
+                max_connections=1,
+                observed_at=dataset.metadata.generated_at,
+                source="synthetic-dataset:ticket-rules-v1",
+            )
+            for booking in dataset.bookings
         )
         self._session.flush()
 
@@ -183,6 +221,41 @@ class SqlAlchemyRecoveryDataRepository:
         self._session.execute(delete(FlightRecord))
         self._session.execute(delete(PassengerRecord))
         self._session.flush()
+
+    def get_availability_by_flight_ids(
+        self, flight_ids: tuple[FlightId, ...]
+    ) -> tuple[AvailabilityEvidence, ...]:
+        records = self._session.scalars(
+            select(FlightAvailabilityEvidenceRecord)
+            .where(FlightAvailabilityEvidenceRecord.flight_id.in_(flight_ids))
+            .order_by(FlightAvailabilityEvidenceRecord.flight_id)
+        ).all()
+        return tuple(
+            AvailabilityEvidence(
+                flight_id=record.flight_id,
+                available_seats=record.available_seats,
+                observed_at=record.observed_at,
+                source=record.source,
+            )
+            for record in records
+        )
+
+    def get_ticket_rule(self, booking_id: BookingId) -> TicketRuleEvidence | None:
+        record = self._session.scalar(
+            select(TicketRuleEvidenceRecord).where(
+                TicketRuleEvidenceRecord.booking_id == booking_id
+            )
+        )
+        if record is None:
+            return None
+        return TicketRuleEvidence(
+            booking_id=record.booking_id,
+            rebooking_allowed=record.rebooking_allowed,
+            allowed_carrier_code=record.allowed_carrier_code,
+            max_connections=record.max_connections,
+            observed_at=record.observed_at,
+            source=record.source,
+        )
 
     def get_complete_booking(
         self,

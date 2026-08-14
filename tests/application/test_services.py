@@ -10,9 +10,11 @@ from travelops_recovery_agent.application.models import (
     PersistenceRecordCounts,
 )
 from travelops_recovery_agent.application.query_models import (
+    AvailabilityEvidence,
     CompleteBooking,
     FlightWithDisruptions,
     ResolvedDisruptionPolicy,
+    TicketRuleEvidence,
 )
 from travelops_recovery_agent.application.repositories import RecoveryDataRepository
 from travelops_recovery_agent.application.services import (
@@ -32,7 +34,7 @@ from travelops_recovery_agent.domain.models import (
 )
 
 EMPTY_COUNTS = PersistenceRecordCounts(0, 0, 0, 0, 0, 0, 0, 0, 0)
-SEEDED_COUNTS = PersistenceRecordCounts(13, 20, 10, 13, 20, 10, 1, 3, 10)
+SEEDED_COUNTS = PersistenceRecordCounts(13, 50, 10, 13, 20, 10, 1, 3, 10, 50, 10)
 
 
 class FakeRecoveryDataRepository:
@@ -101,6 +103,14 @@ class FakeRecoveryDataRepository:
     def clear(self) -> None:
         self.clear_calls += 1
         self.current_counts = EMPTY_COUNTS
+
+    def get_availability_by_flight_ids(
+        self, flight_ids: tuple[FlightId, ...]
+    ) -> tuple[AvailabilityEvidence, ...]:
+        return ()
+
+    def get_ticket_rule(self, booking_id: BookingId) -> TicketRuleEvidence | None:
+        return None
 
 
 class FakeRecoveryDataUnitOfWork:

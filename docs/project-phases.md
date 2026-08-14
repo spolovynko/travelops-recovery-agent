@@ -80,6 +80,8 @@ The [UI specification](ui.md) maps visible operator and developer-facing UI incr
 
 - Prevents the agent from recommending itineraries that fail deterministic connection, availability, route, or ticket checks.
 - Connects each recommendation to stored evidence and explicit tradeoffs, increasing operator trust and review quality.
+- Distinguishes complete no-safe-option evidence from insufficient evidence and escalates both without guessing.
+- Checkpoints the typed read-only result while leaving approval and booking effects to Phase 10.
 
 ### Phase 10 — human-approved rebooking
 

@@ -29,6 +29,13 @@ test("operator opens, investigates, searches, validates and refreshes a case URL
   await expect(page).toHaveURL(/\/cases\/CASE-0001$/);
   await expect(page.getByText("Mina Vale")).toBeVisible();
   await expect(page.getByText("Synthetic standard recovery")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Recommended itinerary" }),
+  ).toBeVisible();
+  await expect(page.getByText("REC-FLT-NV1003")).toBeVisible();
+  await expect(
+    page.getByText("Rejected options and reasons (1)"),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Search alternatives" }).click();
   await expect(page.getByText("Option 1")).toBeVisible();
   await page.getByRole("button", { name: "Validate candidate" }).click();

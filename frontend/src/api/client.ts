@@ -4,6 +4,7 @@ import type {
   ItineraryValidation,
   RecoveryCaseQueue,
   RecoveryCaseWorkspace,
+  RecommendationResult,
   WorkflowRun,
 } from "./models";
 
@@ -61,6 +62,10 @@ export const recoveryApi = {
   getCase: (caseId: string) =>
     request<RecoveryCaseWorkspace>(
       `/api/v1/recovery-cases/${encodeURIComponent(caseId)}`,
+    ),
+  getRecommendation: (caseId: string) =>
+    request<RecommendationResult>(
+      `/api/v1/recovery-cases/${encodeURIComponent(caseId)}/recommendation`,
     ),
   search: (input: {
     case_id: string;

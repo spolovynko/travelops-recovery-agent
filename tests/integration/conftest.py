@@ -22,6 +22,8 @@ TEST_DATABASE_URL_ENV = "TRAVELOPS_TEST_DATABASE_URL"
 MANAGED_TABLES = (
     "workflow.workflow_events",
     "workflow.workflow_runs",
+    "flight_availability_evidence",
+    "ticket_rule_evidence",
     "recovery_cases",
     "disruptions",
     "disruption_policy_types",

@@ -134,6 +134,11 @@ export function WorkflowActivity({
     );
 
   const run = runQuery.data;
+  const recommendationEvidence = new Set(
+    run.recommendation?.option_results.flatMap((option) =>
+      option.evidence_references.map((reference) => reference.evidence_id),
+    ) ?? [],
+  ).size;
   return (
     <div className="workflow-activity">
       <div className="workflow-status" aria-live="polite">
@@ -198,7 +203,7 @@ export function WorkflowActivity({
         </div>
         <div>
           <dt>Evidence</dt>
-          <dd>{run.evidence_ids.length}</dd>
+          <dd>{Math.max(run.evidence_ids.length, recommendationEvidence)}</dd>
         </div>
       </dl>
 

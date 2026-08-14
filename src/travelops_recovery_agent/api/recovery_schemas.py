@@ -13,6 +13,9 @@ from pydantic import (
 )
 
 from travelops_recovery_agent.application.query_models import OperationalFlightStatus
+from travelops_recovery_agent.application.recommendation_models import (
+    RecommendationResult,
+)
 from travelops_recovery_agent.domain.itinerary_validation import (
     ItineraryRule,
     RuleStatus,
@@ -121,6 +124,7 @@ class RecoveryCaseWorkspaceView(ApiViewModel):
     disruption: DisruptionEvidenceView
     policy: PolicyEvidenceView
     search_defaults: AlternativeSearchDefaultsView
+    recommendation: RecommendationResult
 
 
 class AlternativeSearchRequest(ApiViewModel):

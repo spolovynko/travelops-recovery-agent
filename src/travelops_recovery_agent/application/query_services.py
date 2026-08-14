@@ -11,6 +11,10 @@ from travelops_recovery_agent.application.query_models import (
     RecoveryCaseQueueItem,
     ResolvedDisruptionPolicy,
 )
+from travelops_recovery_agent.application.recommendation_models import (
+    RecommendationResult,
+)
+from travelops_recovery_agent.application.recommendations import RecommendationService
 from travelops_recovery_agent.application.services import (
     RecoveryDataUnitOfWorkFactory,
 )
@@ -37,6 +41,12 @@ class OperationalQueryService:
         unit_of_work_factory: RecoveryDataUnitOfWorkFactory,
     ) -> None:
         self._unit_of_work_factory = unit_of_work_factory
+        self._recommendations = RecommendationService(unit_of_work_factory)
+
+    def recommend(self, case_id: str) -> RecommendationResult:
+        """Return a fully validated, evidence-grounded recommendation outcome."""
+
+        return self._recommendations.recommend(case_id)
 
     def get_booking(self, booking_id: BookingId) -> CompleteBooking | None:
         """Return one complete booking without exposing persistence objects."""

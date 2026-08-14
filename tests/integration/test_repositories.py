@@ -72,7 +72,7 @@ def test_repository_adds_counts_retrieves_and_clears_dataset(
         repository = SqlAlchemyRecoveryDataRepository(session)
         assert repository.counts() == PersistenceRecordCounts(
             passengers=13,
-            flights=20,
+            flights=50,
             bookings=10,
             booking_passengers=13,
             itinerary_segments=20,
@@ -80,6 +80,8 @@ def test_repository_adds_counts_retrieves_and_clears_dataset(
             disruption_policies=1,
             disruption_policy_types=3,
             recovery_cases=10,
+            flight_availability_evidence=50,
+            ticket_rule_evidence=10,
         )
         complete_case = repository.get_complete_case("CASE-0007")
 
@@ -218,7 +220,11 @@ def test_repository_lists_flights_in_a_bounded_window_deterministically(
             datetime(2026, 1, 15, 18, 0, tzinfo=UTC),
         )
 
-    assert [flight.id for flight in flights] == ["FLT-NV101", "FLT-NV102"]
+    assert [flight.id for flight in flights] == [
+        "FLT-NV101",
+        "FLT-NV102",
+        "FLT-NV1004",
+    ]
 
 
 @pytest.mark.integration
@@ -236,3 +242,34 @@ def test_repository_retrieves_only_explicit_flight_identifiers(
 
     assert [flight.id for flight in flights] == ["FLT-NV101", "FLT-NV102"]
     assert [flight.id for flight in partial] == ["FLT-NV101"]
+
+
+@pytest.mark.integration
+def test_repository_returns_synthetic_availability_and_ticket_evidence(
+    clean_session_factory: SessionFactory,
+) -> None:
+    dataset = generate_dataset(seed=42)
+    with clean_session_factory.begin() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        repository.add_dataset(dataset)
+
+    with clean_session_factory() as session:
+        repository = SqlAlchemyRecoveryDataRepository(session)
+        availability = repository.get_availability_by_flight_ids(
+            ("FLT-NV1003", "FLT-NV1004")
+        )
+        ticket_rule = repository.get_ticket_rule("BKG-0001")
+
+    assert [item.flight_id for item in availability] == [
+        "FLT-NV1003",
+        "FLT-NV1004",
+    ]
+    assert all(item.available_seats == 6 for item in availability)
+    assert all(
+        item.source == "synthetic-dataset:availability-v1" for item in availability
+    )
+    assert ticket_rule is not None
+    assert ticket_rule.rebooking_allowed
+    assert ticket_rule.allowed_carrier_code == "NV"
+    assert ticket_rule.max_connections == 1
+    assert ticket_rule.source == "synthetic-dataset:ticket-rules-v1"

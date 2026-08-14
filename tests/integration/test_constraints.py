@@ -1,6 +1,7 @@
 """Real-PostgreSQL tests for important database constraints."""
 
 import pytest
+from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 
 from travelops_recovery_agent.data.dataset import SyntheticDataset
@@ -8,9 +9,11 @@ from travelops_recovery_agent.data.generator import generate_dataset
 from travelops_recovery_agent.persistence.models import (
     BookingPassengerRecord,
     DisruptionRecord,
+    FlightAvailabilityEvidenceRecord,
     ItinerarySegmentRecord,
     PassengerRecord,
     RecoveryCaseRecord,
+    TicketRuleEvidenceRecord,
 )
 from travelops_recovery_agent.persistence.repositories import (
     SqlAlchemyRecoveryDataRepository,
@@ -156,5 +159,28 @@ def test_recovery_case_requires_existing_related_records(
                 disruption_id="DISRUPTION-MISSING",
                 policy_id="POLICY-MISSING",
             )
+        )
+        session.flush()
+
+
+@pytest.mark.integration
+def test_recommendation_evidence_constraints_reject_unsafe_values(
+    clean_session_factory: SessionFactory,
+) -> None:
+    seed_database(clean_session_factory)
+
+    with pytest.raises(IntegrityError), clean_session_factory.begin() as session:
+        session.execute(
+            update(FlightAvailabilityEvidenceRecord)
+            .where(FlightAvailabilityEvidenceRecord.flight_id == "FLT-NV1003")
+            .values(available_seats=-1)
+        )
+        session.flush()
+
+    with pytest.raises(IntegrityError), clean_session_factory.begin() as session:
+        session.execute(
+            update(TicketRuleEvidenceRecord)
+            .where(TicketRuleEvidenceRecord.booking_id == "BKG-0001")
+            .values(max_connections=5)
         )
         session.flush()

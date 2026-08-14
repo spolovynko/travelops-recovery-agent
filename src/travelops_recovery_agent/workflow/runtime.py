@@ -21,6 +21,7 @@ from travelops_recovery_agent.agent.graph import (
 from travelops_recovery_agent.agent.models import AgentDecision
 from travelops_recovery_agent.agent.tools import ReadOnlyToolDispatcher
 from travelops_recovery_agent.application.query_services import OperationalQueryService
+from travelops_recovery_agent.application.recommendations import RecommendationService
 from travelops_recovery_agent.persistence.session import SessionFactory
 from travelops_recovery_agent.persistence.unit_of_work import (
     SqlAlchemyRecoveryDataUnitOfWork,
@@ -82,4 +83,7 @@ class ApplicationGraphContextFactory:
             dispatcher=dispatcher,
             actor_id=self.actor_id,
             clock=utc_now,
+            recommendation_provider=RecommendationService(
+                partial(SqlAlchemyRecoveryDataUnitOfWork, self.session_factory)
+            ),
         )

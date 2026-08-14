@@ -3,7 +3,6 @@
 from typing import cast
 
 import pytest
-from travelops_recovery_agent.persistence.cli import main
 
 from travelops_recovery_agent.application.models import (
     CompleteRecoveryCase,
@@ -15,9 +14,10 @@ from travelops_recovery_agent.application.services import (
 )
 from travelops_recovery_agent.data.dataset import SyntheticDataset
 from travelops_recovery_agent.domain.models import RecoveryCaseId
+from travelops_recovery_agent.persistence.cli import main
 
 EMPTY_COUNTS = PersistenceRecordCounts(0, 0, 0, 0, 0, 0, 0, 0, 0)
-SEEDED_COUNTS = PersistenceRecordCounts(13, 20, 10, 13, 20, 10, 1, 3, 10)
+SEEDED_COUNTS = PersistenceRecordCounts(13, 50, 10, 13, 20, 10, 1, 3, 10, 50, 10)
 
 
 class StubRecoveryDataService:
@@ -141,6 +141,8 @@ def test_counts_prints_every_managed_table_as_json(
     assert exit_code == 0
     assert '"passengers": 13' in captured.out
     assert '"recovery_cases": 10' in captured.out
+    assert '"flight_availability_evidence": 50' in captured.out
+    assert '"ticket_rule_evidence": 10' in captured.out
     assert captured.err == ""
 
 

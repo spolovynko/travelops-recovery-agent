@@ -8,9 +8,11 @@ from travelops_recovery_agent.persistence.models import (
     Base,
     BookingPassengerRecord,
     BookingRecord,
+    FlightAvailabilityEvidenceRecord,
     FlightRecord,
     ItinerarySegmentRecord,
     PassengerRecord,
+    TicketRuleEvidenceRecord,
 )
 
 
@@ -55,6 +57,18 @@ def test_foundational_tables_are_registered() -> None:
         "booking_passengers",
         "itinerary_segments",
     } <= set(Base.metadata.tables)
+
+
+def test_phase_nine_evidence_tables_have_stable_keys_and_checks() -> None:
+    availability = model_table(FlightAvailabilityEvidenceRecord)
+    ticket = model_table(TicketRuleEvidenceRecord)
+
+    assert primary_key_columns(availability) == ("flight_id",)
+    assert primary_key_columns(ticket) == ("booking_id",)
+    assert "ck_flight_availability_nonnegative_seats" in named_check_constraints(
+        availability
+    )
+    assert "ck_ticket_rule_connection_range" in named_check_constraints(ticket)
 
 
 def test_stable_domain_identifiers_are_primary_keys() -> None:

@@ -81,6 +81,77 @@ export interface RecoveryCaseWorkspace {
   disruption: DisruptionEvidence;
   policy: PolicyEvidence;
   search_defaults: SearchDefaults;
+  recommendation: RecommendationResult;
+}
+
+export type RecommendationOutcome =
+  "recommended" | "no_safe_option" | "insufficient_evidence";
+export type EvidenceCompleteness = "complete" | "partial" | "insufficient";
+export type RecommendationValidationStatus =
+  "passed" | "failed" | "missing_evidence" | "not_evaluated";
+
+export interface RecommendationEvidence {
+  evidence_id: string;
+  kind: string;
+  source: string;
+  summary: string;
+  observed_at: string | null;
+}
+
+export interface RecommendationSegment {
+  flight_id: string;
+  service: string;
+  origin: string;
+  destination: string;
+  scheduled_departure: string;
+  scheduled_arrival: string;
+  operational_departure: string;
+  operational_arrival: string;
+  status: string;
+  available_seats: number | null;
+}
+
+export interface RecommendationCheck {
+  rule: string;
+  status: RecommendationValidationStatus;
+  summary: string;
+  evidence_ids: string[];
+}
+
+export interface RecommendationOption {
+  option_id: string;
+  segments: RecommendationSegment[];
+  validation: {
+    valid: boolean;
+    evidence_complete: boolean;
+    checks: RecommendationCheck[];
+    rejection_reasons: string[];
+  };
+  evidence_references: RecommendationEvidence[];
+  ranking_inputs: {
+    arrival_time: string;
+    connection_count: number;
+    total_wait_minutes: number;
+    minimum_available_seats: number;
+    passenger_count: number;
+    seat_surplus: number;
+    policy_compatible: boolean;
+    ticket_compatible: boolean;
+    rank_position: number | null;
+  } | null;
+  tradeoffs: string[];
+}
+
+export interface RecommendationResult {
+  case_id: string;
+  outcome: RecommendationOutcome;
+  recommended_itinerary: RecommendationOption | null;
+  other_validated_options: RecommendationOption[];
+  option_results: RecommendationOption[];
+  evidence_references: RecommendationEvidence[];
+  evidence_completeness: EvidenceCompleteness;
+  escalation_reason: string | null;
+  ranking_method: string;
 }
 
 export interface CandidateSegment {
@@ -142,6 +213,7 @@ export type WorkflowStatus =
   | "failed";
 
 export type WorkflowNode =
+  | "validated_recommendation"
   | "intake"
   | "model_reasoning"
   | "decision_validation"
@@ -179,6 +251,7 @@ export interface WorkflowRun {
   failure_code: string | null;
   failure_message: string | null;
   last_event_sequence: number;
+  recommendation: RecommendationResult | null;
 }
 
 export interface WorkflowEvent {

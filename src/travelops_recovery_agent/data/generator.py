@@ -24,7 +24,7 @@ from travelops_recovery_agent.domain.models import (
     RecoveryCase,
 )
 
-GENERATOR_VERSION = "1.0"
+GENERATOR_VERSION = "1.1"
 REFERENCE_TIME = datetime(2026, 1, 15, 8, 0, tzinfo=UTC)
 
 _GIVEN_NAMES = ("Mina", "Tariq", "Elara", "Jonas", "Noor")
@@ -210,6 +210,43 @@ def generate_dataset(seed: int) -> SyntheticDataset:
         )
         case_flights = (first_flight, second_flight)
         flights.extend(case_flights)
+
+        alternative_number = 1000 + (case_number * 3)
+        direct_departure = first_departure + timedelta(hours=5)
+        direct_flight = Flight(
+            id=f"FLT-NV{alternative_number}",
+            carrier_code="NV",
+            flight_number=str(alternative_number),
+            origin=origin,
+            destination=destination,
+            scheduled_departure=direct_departure,
+            scheduled_arrival=direct_departure + timedelta(hours=2, minutes=30),
+        )
+        connection_first_departure = first_departure + timedelta(hours=4, minutes=30)
+        connection_first = Flight(
+            id=f"FLT-NV{alternative_number + 1}",
+            carrier_code="NV",
+            flight_number=str(alternative_number + 1),
+            origin=origin,
+            destination=connection,
+            scheduled_departure=connection_first_departure,
+            scheduled_arrival=connection_first_departure
+            + timedelta(hours=1, minutes=30),
+        )
+        connection_second_departure = connection_first.scheduled_arrival + timedelta(
+            minutes=60
+        )
+        connection_second = Flight(
+            id=f"FLT-NV{alternative_number + 2}",
+            carrier_code="NV",
+            flight_number=str(alternative_number + 2),
+            origin=connection,
+            destination=destination,
+            scheduled_departure=connection_second_departure,
+            scheduled_arrival=connection_second_departure
+            + timedelta(hours=1, minutes=30),
+        )
+        flights.extend((direct_flight, connection_first, connection_second))
 
         first_segment = ItinerarySegment(
             id=f"SEG-{case_number:03d}1",

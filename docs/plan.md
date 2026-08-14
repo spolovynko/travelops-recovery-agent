@@ -294,10 +294,13 @@ A workflow can pause, survive a process restart, resume once, and reconnect to t
 ### Ship
 
 - Deterministic connection, seat, route, and ticket validation
+- Stored-flight existence/status, operational-time, and minimum-connection validation
+- Repository-backed synthetic availability and ticket-rule evidence
 - Ranking inputs and explicit tradeoff explanation
 - Evidence references for every recommended option
 - No-option and insufficient-evidence outcomes
 - Recommendation benchmark cases
+- Checkpointed read-only results and structured recommendation progress events
 
 ### Learn to explain
 

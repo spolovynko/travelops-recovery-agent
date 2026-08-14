@@ -79,6 +79,8 @@ class WorkflowEventType(StrEnum):
     RUN_AWAITING_INFORMATION = "workflow.awaiting_information"
     RUN_FAILED = "workflow.failed"
     REPLAY_RESET_REQUIRED = "stream.replay_reset_required"
+    RECOMMENDATION_COMPLETED = "recommendation.completed"
+    RECOMMENDATION_ESCALATED = "recommendation.escalated"
 
 
 class WorkflowIdentity(WorkflowContract):

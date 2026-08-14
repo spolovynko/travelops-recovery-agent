@@ -89,6 +89,28 @@ class FlightRecord(Base):
     )
 
 
+class FlightAvailabilityEvidenceRecord(Base):
+    __tablename__ = "flight_availability_evidence"
+    __table_args__ = (
+        CheckConstraint(
+            "available_seats >= 0",
+            name="ck_flight_availability_nonnegative_seats",
+        ),
+    )
+
+    flight_id: Mapped[str] = mapped_column(
+        String(32),
+        ForeignKey("flights.id", ondelete="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
+    available_seats: Mapped[int] = mapped_column(Integer, nullable=False)
+    observed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    source: Mapped[str] = mapped_column(String(100), nullable=False)
+
+
 class BookingRecord(Base):
     __tablename__ = "bookings"
 
@@ -110,6 +132,30 @@ class BookingRecord(Base):
         passive_deletes=True,
         order_by="ItinerarySegmentRecord.sequence",
     )
+
+
+class TicketRuleEvidenceRecord(Base):
+    __tablename__ = "ticket_rule_evidence"
+    __table_args__ = (
+        CheckConstraint(
+            "max_connections >= 0 AND max_connections <= 4",
+            name="ck_ticket_rule_connection_range",
+        ),
+    )
+
+    booking_id: Mapped[str] = mapped_column(
+        String(32),
+        ForeignKey("bookings.id", ondelete="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
+    rebooking_allowed: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    allowed_carrier_code: Mapped[str] = mapped_column(String(2), nullable=False)
+    max_connections: Mapped[int] = mapped_column(Integer, nullable=False)
+    observed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    source: Mapped[str] = mapped_column(String(100), nullable=False)
 
 
 class BookingPassengerRecord(Base):

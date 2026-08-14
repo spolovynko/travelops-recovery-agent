@@ -2,10 +2,10 @@
 
 ## Current state
 
-- **Current phase:** Phase 7 — LangGraph orchestration
+- **Current phase:** Phase 9 — validated recommendations and evidence
 - **Status:** Complete
-- **Last completed result:** An explicit, inspectable LangGraph workflow that is behaviorally equivalent to the verified Phase 6 manual loop
-- **Next gate:** Review the intended Phase 7 Git scope; begin durable checkpointing and resumption only as an explicitly requested Phase 8
+- **Last completed result:** Only fully validated itineraries can be recommended; every outcome exposes evidence, ranking inputs, tradeoffs, rejections, or safe escalation
+- **Next gate:** Review Phase 9 scope; begin proposal, approval, evidence recheck, idempotent execution, and audit work only as an explicitly requested Phase 10
 
 ## Concepts confirmed in Phase 0
 
@@ -86,6 +86,23 @@
 - Recorded manual-loop/graph equivalence as the framework-adoption gate
 - Minimal LangChain Core usage for one exact runtime configuration type, not a prebuilt agent
 - Transient Phase 7 orchestration versus Phase 8 checkpoint durability and resumption
+
+## Concepts confirmed in Phase 8
+
+- PostgreSQL checkpoints, thread/run identity, safe resume, and runtime reconstruction
+- At-least-once boundaries, read-only idempotency limits, leases, and cancellation
+- Ordered safe progress events, SSE cursors, replay, reconnect, and retention
+
+## Concepts confirmed in Phase 9
+
+- Candidate generation versus deterministic validation versus recommendation
+- Application-owned validity and model-limited comparison/explanation authority
+- Repository evidence references, provenance, observation time, and traceability
+- Operational connection time, minimum connection time, group seats, and ticket rules
+- Reproducible lexicographic ranking with visible inputs and explicit tradeoffs
+- Complete rejection versus insufficient evidence and fail-closed escalation
+- Checkpointed recommendation state and duplicate-free resume
+- Read-only recommendation versus Phase 10 proposal, approval, recheck, and write
 
 ## Parking lot
 
@@ -429,3 +446,43 @@ selection.
 
 **Next smallest step:** Review the intended unstaged Phase 8 diff. Begin Phase 9
 only after an explicit request.
+
+## Session 10 — 2026-08-14
+
+**Phase:** Phase 9 — validated recommendations and evidence
+
+**Built:** Added normalized synthetic flight-availability and booking ticket-rule
+evidence through Alembic `0003`; deterministic direct/connecting recovery
+candidates; seven evidence-citing validation rules; strict recommendation,
+option, ranking, tradeoff, rejection, confidence, and escalation contracts;
+stable ranking; recommended/no-safe/insufficient-evidence outcomes; a
+checkpointed `validated_recommendation` graph path; safe structured progress
+events; API projections; and complete React rendering. The phase remains
+read-only and works with the unavailable model adapter.
+
+**Verified:** Deterministic direct, connecting, invalid-route, overlap,
+minimum-connection, group-seat, ticket, cancellation, missing-flight,
+missing-evidence, stable-ranking, no-option, and insufficient-evidence
+benchmarks; real PostgreSQL migrations/repositories/API; pause, store disposal,
+runtime reconstruction, resume, and one recommendation event; unchanged Phase
+6/7 and Phase 8 recorded equivalence; frontend component/build/browser gates;
+and the full repository quality gate recorded in the Phase 9 notes.
+
+**Concepts confirmed:** Candidate generation is not validation; all required
+rules must pass in application code; evidence IDs make support traceable;
+ranking inputs and tradeoffs must remain visible; missing evidence is not a weak
+pass; durable state prevents recomputation after resume; recommendations do not
+authorize booking writes.
+
+**Still unclear:** Live airline evidence semantics, airport-specific connection
+rules, and provider-backed explanation quality remain outside this synthetic
+phase. They do not block the Phase 9 gate.
+
+**Decisions:** [D-046 through D-050](decisions.md#d-046--store-synthetic-recommendation-evidence-as-business-data).
+
+**Parked:** Proposal expiry, human approval, final inventory recheck,
+authorization, idempotency keys, booking mutation, and immutable audit belong to
+Phase 10. Live airline services and a trusted default model remain deferred.
+
+**Next smallest step:** Review the Phase 9 scope. Begin Phase 10 only after an
+explicit request.

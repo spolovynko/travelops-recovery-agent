@@ -3,7 +3,7 @@
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Annotated, Any, Literal, TypedDict, cast
+from typing import Annotated, Any, Literal, Protocol, TypedDict, cast
 
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.base import BaseCheckpointSaver
@@ -37,9 +37,14 @@ from travelops_recovery_agent.agent.tools import (
     UnknownToolError,
     fingerprint_tool_call,
 )
+from travelops_recovery_agent.application.recommendation_models import (
+    RecommendationOutcome,
+    RecommendationResult,
+)
 from travelops_recovery_agent.tools.contracts import ToolExecutionContext
 
 GraphNode = Literal[
+    "validated_recommendation",
     "intake",
     "model_reasoning",
     "decision_validation",
@@ -50,6 +55,7 @@ GraphNode = Literal[
     "safe_failure",
 ]
 GraphRoute = Literal[
+    "validated_recommendation",
     "model_reasoning",
     "decision_validation",
     "tool_execution",
@@ -59,6 +65,12 @@ GraphRoute = Literal[
     "safe_failure",
     "end",
 ]
+
+
+class RecommendationProvider(Protocol):
+    """Application-owned deterministic recommendation boundary."""
+
+    def recommend(self, case_id: str) -> RecommendationResult: ...
 
 
 def utc_now() -> datetime:
@@ -75,6 +87,7 @@ class AgentGraphContext:
     dispatcher: ReadOnlyToolDispatcher
     actor_id: str
     clock: Callable[[], datetime] = utc_now
+    recommendation_provider: RecommendationProvider | None = None
 
 
 def append_node_history(
@@ -168,6 +181,50 @@ def intake(state: AgentGraphState) -> AgentGraphUpdate:
         )
         return update
     update["route"] = "model_reasoning"
+    return update
+
+
+def validated_recommendation(
+    state: AgentGraphState,
+    runtime: Runtime[AgentGraphContext],
+) -> AgentGraphUpdate:
+    """Compute a recommendation whose validity is owned entirely by application code."""
+
+    update: AgentGraphUpdate = {"node_history": ("validated_recommendation",)}
+    provider = runtime.context.recommendation_provider
+    if provider is None:
+        update.update(
+            _pending_failure(
+                AgentFailureCode.RECOMMENDATION_FAILURE,
+                "the deterministic recommendation service is not configured",
+            )
+        )
+        return update
+    try:
+        result = provider.recommend(state["run_state"].case_id)
+        if result.outcome is RecommendationOutcome.RECOMMENDED:
+            summary = "A recovery itinerary passed every deterministic validation rule."
+        elif result.outcome is RecommendationOutcome.INSUFFICIENT_EVIDENCE:
+            summary = "Recommendation evidence is incomplete; operator escalation is required."
+        else:
+            summary = (
+                "No safe recovery itinerary exists; operator escalation is required."
+            )
+        run_state = _replace_run_state(
+            state["run_state"],
+            status=RunStatus.COMPLETED,
+            final_outcome={"summary": summary},
+            recommendation=result,
+        )
+    except Exception:
+        update.update(
+            _pending_failure(
+                AgentFailureCode.RECOMMENDATION_FAILURE,
+                "the deterministic recommendation could not be completed safely",
+            )
+        )
+        return update
+    update.update({"run_state": run_state, "route": "completion"})
     return update
 
 
@@ -683,6 +740,8 @@ def _add_routes(
 
 def build_recovery_graph(
     checkpointer: BaseCheckpointSaver[Any] | None = None,
+    *,
+    enable_recommendations: bool = False,
 ) -> CompiledStateGraph[
     AgentGraphState,
     AgentGraphContext,
@@ -701,7 +760,16 @@ def build_recovery_graph(
     builder.add_node("completion", completion)
     builder.add_node("safe_failure", safe_failure)
 
-    builder.add_edge(START, "intake")
+    if enable_recommendations:
+        builder.add_node("validated_recommendation", validated_recommendation)
+        builder.add_edge(START, "validated_recommendation")
+        _add_routes(
+            builder,
+            "validated_recommendation",
+            ("completion", "safe_failure"),
+        )
+    else:
+        builder.add_edge(START, "intake")
     _add_routes(builder, "intake", ("model_reasoning", "safe_failure"))
     _add_routes(
         builder,

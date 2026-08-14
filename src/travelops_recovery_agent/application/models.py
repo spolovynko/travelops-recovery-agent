@@ -23,6 +23,8 @@ class PersistenceRecordCounts:
     disruption_policies: int
     disruption_policy_types: int
     recovery_cases: int
+    flight_availability_evidence: int = 0
+    ticket_rule_evidence: int = 0
 
     def is_empty(self) -> bool:
         return all(
@@ -37,6 +39,8 @@ class PersistenceRecordCounts:
                 self.disruption_policies,
                 self.disruption_policy_types,
                 self.recovery_cases,
+                self.flight_availability_evidence,
+                self.ticket_rule_evidence,
             )
         )
 

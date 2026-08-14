@@ -100,3 +100,25 @@ class ItineraryValidationResult:
     flight_ids: tuple[str, ...]
     valid: bool
     rules: tuple[ItineraryRuleResult, ...]
+
+
+@dataclass(frozen=True)
+class AvailabilityEvidence:
+    """Repository-backed synthetic seat evidence for one flight."""
+
+    flight_id: str
+    available_seats: int
+    observed_at: datetime
+    source: str
+
+
+@dataclass(frozen=True)
+class TicketRuleEvidence:
+    """Repository-backed synthetic ticket constraints for one booking."""
+
+    booking_id: str
+    rebooking_allowed: bool
+    allowed_carrier_code: str
+    max_connections: int
+    observed_at: datetime
+    source: str

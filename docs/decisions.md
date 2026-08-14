@@ -808,6 +808,100 @@ failure during an in-flight call has bounded read-only consequences.
 
 **Revisit when:** Phase 10 adds an effect ledger and idempotency keys.
 
+## D-046 — Store synthetic recommendation evidence as business data
+
+**Status:** Accepted
+
+**Context:** Availability and ticket constraints must survive processes, support
+missing-evidence tests, and be independently traceable.
+
+**Decision:** Alembic `0003` adds normalized flight-availability and
+booking-ticket-rule evidence with observation times and sources. Deterministic
+seeding creates the synthetic rows.
+
+**Alternatives:** Hard-code seat counts in validation, hide rules in fixtures,
+or require an external airline service.
+
+**Consequences:** Recommendations use repository facts and evidence can be
+removed to prove safe failure. The evidence is still synthetic and not reserved.
+
+**Revisit when:** A versioned external inventory or fare adapter is introduced.
+
+## D-047 — Derive validity only from complete deterministic checks
+
+**Status:** Accepted
+
+**Context:** A model or caller must not be able to label an unsafe itinerary valid.
+
+**Decision:** Application code evaluates existence, route, operational times,
+minimum connection, group seats, ticket/policy compatibility, and current
+status. Every check must pass; immutable contracts revalidate the derived flag.
+
+**Alternatives:** Model self-verification, weighted validity scores, or treating
+unknown evidence as a warning.
+
+**Consequences:** Validity is reproducible and fail-closed. A model may explain
+or compare only the resulting validated set.
+
+**Revisit when:** New deterministic rules are added, not when model quality changes.
+
+## D-048 — Rank valid options with a visible lexicographic key
+
+**Status:** Accepted
+
+**Context:** Operators need stable ordering without an opaque score that hides
+missing evidence or subjective weights.
+
+**Decision:** Rank by operational arrival, connections, connection waiting,
+seat surplus, and stable option ID. Expose every input and explicit tradeoffs.
+
+**Alternatives:** A hidden weighted score, model ranking, or arrival time alone.
+
+**Consequences:** Repeated runs are stable and auditable. The chosen operational
+preference remains visible and can be revised deliberately.
+
+**Revisit when:** Reviewed operator feedback justifies different priorities or
+scoped preferences.
+
+## D-049 — Separate no-safe-option from insufficient-evidence escalation
+
+**Status:** Accepted
+
+**Context:** Complete evidence proving rejection is different from an inability
+to validate because evidence is absent.
+
+**Decision:** Use separate `no_safe_option` and `insufficient_evidence` outcomes,
+plus complete/partial/insufficient evidence status. Neither may contain a
+recommended itinerary.
+
+**Alternatives:** One generic failure, low-confidence guesses, or silently
+dropping candidates with missing facts.
+
+**Consequences:** Operators can distinguish an operational dead end from a data
+gap and pursue the correct escalation.
+
+**Revisit when:** Escalation routing becomes a separately governed workflow.
+
+## D-050 — Checkpoint the read-only recommendation as graph state
+
+**Status:** Accepted
+
+**Context:** Phase 9 results must preserve Phase 8 restart behavior without
+changing Phase 6/7 equivalence or adding a second workflow engine.
+
+**Decision:** Keep the original graph build as the equivalence default. The
+application enables a `validated_recommendation` entry node that stores the
+typed result in `AgentRunState`, emits one safe structured event, and checkpoints
+before completion.
+
+**Alternatives:** Recompute only in HTTP, store a separate recommendation row,
+or require the model/tool loop to declare validity.
+
+**Consequences:** Production recommendations need no model and resume without
+duplicate work. Reads remain the only airline operations.
+
+**Revisit when:** Phase 10 introduces proposals and effect-level idempotency.
+
 ## Decision template
 
 ```markdown

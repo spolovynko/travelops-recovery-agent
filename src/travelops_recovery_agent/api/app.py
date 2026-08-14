@@ -77,6 +77,7 @@ def create_app(
                     WorkflowRepository(session_factory),
                     checkpoint_store,
                     context_factory,
+                    enable_recommendations=True,
                 )
                 resolved_workflow_service.apply_event_retention(
                     timedelta(hours=resolved_settings.workflow_event_retention_hours)

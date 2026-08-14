@@ -36,6 +36,9 @@ from travelops_recovery_agent.application.query_models import (
     OperationalFlightStatus,
     RecoveryCaseQueueItem,
 )
+from travelops_recovery_agent.application.recommendation_models import (
+    RecommendationResult,
+)
 from travelops_recovery_agent.domain.models import (
     CancelledFlightDetails,
     DelayedFlightDetails,
@@ -48,6 +51,8 @@ logger = logging.getLogger(__name__)
 
 
 class RecoveryQueryService(Protocol):
+    def recommend(self, case_id: str) -> RecommendationResult: ...
+
     def list_recovery_cases(self) -> tuple[RecoveryCaseQueueItem, ...]: ...
 
     def get_recovery_case(
@@ -113,6 +118,21 @@ def create_recovery_router() -> APIRouter:
         except Exception:
             return _unavailable()
 
+    @router.get(
+        "/recovery-cases/{case_id}/recommendation",
+        response_model=RecommendationResult,
+    )
+    def get_recommendation(
+        case_id: RecoveryCaseId,
+        service: RecoveryServiceDependency,
+    ) -> RecommendationResult | JSONResponse:
+        try:
+            if service.get_recovery_case(case_id) is None:
+                return _not_found(case_id)
+            return service.recommend(case_id)
+        except Exception:
+            return _unavailable()
+
     @router.post(
         "/alternative-itineraries/search",
         response_model=AlternativeSearchView,
@@ -165,17 +185,26 @@ def create_recovery_router() -> APIRouter:
                 ValidationRuleView(
                     rule="minimum_connection_policy",
                     status="deferred",
-                    reason="Minimum-connection policy evidence is planned for Phase 9.",
+                    reason=(
+                        "The manual schedule explorer does not certify a recovery; "
+                        "the recommendation contract evaluates this rule."
+                    ),
                 ),
                 ValidationRuleView(
                     rule="seat_inventory",
                     status="deferred",
-                    reason="Seat inventory is not present in the synthetic dataset.",
+                    reason=(
+                        "The manual schedule explorer does not certify inventory; "
+                        "the recommendation contract evaluates stored evidence."
+                    ),
                 ),
                 ValidationRuleView(
                     rule="ticket_rules",
                     status="deferred",
-                    reason="Ticket-rule evidence is not present in the synthetic dataset.",
+                    reason=(
+                        "The manual schedule explorer does not certify ticket rules; "
+                        "the recommendation contract evaluates stored evidence."
+                    ),
                 ),
             )
             return ItineraryValidationView(
@@ -300,6 +329,7 @@ def _workspace_view(
             + timedelta(hours=complete_case.policy.rebooking_window_hours),
             passenger_count=len(complete_case.passengers),
         ),
+        recommendation=service.recommend(complete_case.recovery_case.id),
     )
 
 

@@ -12,6 +12,11 @@ from travelops_recovery_agent.application.query_models import (
     OperationalFlightStatus,
     RecoveryCaseQueueItem,
 )
+from travelops_recovery_agent.application.recommendation_models import (
+    EvidenceCompleteness,
+    RecommendationOutcome,
+    RecommendationResult,
+)
 from travelops_recovery_agent.core.config import Environment, Settings
 from travelops_recovery_agent.data.generator import generate_dataset
 from travelops_recovery_agent.domain.itinerary_validation import (
@@ -69,6 +74,17 @@ class RecoveryQueryServiceStub:
                 disruption=disruption,
                 affected_flight_status=status,
             ),
+        )
+
+    def recommend(self, case_id: str) -> RecommendationResult:
+        if self.fail:
+            raise RuntimeError("postgresql://unsafe-secret")
+        return RecommendationResult(
+            case_id=case_id,
+            outcome=RecommendationOutcome.NO_SAFE_OPTION,
+            evidence_completeness=EvidenceCompleteness.COMPLETE,
+            escalation_reason="No test option passed every rule.",
+            ranking_method="stable test ranking",
         )
 
     def get_recovery_case(self, case_id: str) -> CompleteRecoveryCase | None:
@@ -152,6 +168,17 @@ def test_queue_and_workspace_return_minimized_structured_facts() -> None:
     ]
     assert workspace.json()["itinerary"][0]["operational_status"] == "delayed"
     assert workspace.json()["policy"]["policy_id"] == "POL-STANDARD"
+    assert workspace.json()["recommendation"]["outcome"] == "no_safe_option"
+
+
+def test_recommendation_route_returns_a_typed_escalation() -> None:
+    service = RecoveryQueryServiceStub(complete_case())
+    with client(service) as test_client:
+        response = test_client.get("/api/v1/recovery-cases/CASE-0001/recommendation")
+
+    assert response.status_code == 200
+    assert response.json()["outcome"] == "no_safe_option"
+    assert response.json()["recommended_itinerary"] is None
 
 
 def test_queue_empty_missing_case_and_dependency_failure_are_safe() -> None:
@@ -243,6 +270,7 @@ def test_openapi_publishes_read_only_recovery_and_phase_eight_workflow_routes() 
         "/health",
         "/api/v1/recovery-cases",
         "/api/v1/recovery-cases/{case_id}",
+        "/api/v1/recovery-cases/{case_id}/recommendation",
         "/api/v1/alternative-itineraries/search",
         "/api/v1/itineraries/validate",
         "/api/v1/recovery-cases/{case_id}/workflow-runs",

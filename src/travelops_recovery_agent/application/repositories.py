@@ -8,9 +8,11 @@ from travelops_recovery_agent.application.models import (
     PersistenceRecordCounts,
 )
 from travelops_recovery_agent.application.query_models import (
+    AvailabilityEvidence,
     CompleteBooking,
     FlightWithDisruptions,
     ResolvedDisruptionPolicy,
+    TicketRuleEvidence,
 )
 from travelops_recovery_agent.data.dataset import SyntheticDataset
 from travelops_recovery_agent.domain.models import (
@@ -89,4 +91,14 @@ class RecoveryDataRepository(Protocol):
 
     def list_complete_cases(self) -> tuple[CompleteRecoveryCase, ...]:
         """List complete recovery cases in stable identifier order."""
+        ...
+
+    def get_availability_by_flight_ids(
+        self, flight_ids: tuple[FlightId, ...]
+    ) -> tuple[AvailabilityEvidence, ...]:
+        """Return stored synthetic seat evidence for requested flights."""
+        ...
+
+    def get_ticket_rule(self, booking_id: BookingId) -> TicketRuleEvidence | None:
+        """Return stored synthetic ticket and rebooking evidence."""
         ...

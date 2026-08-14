@@ -42,6 +42,43 @@ it("renders minimized investigation, evidence, policy and itinerary facts", asyn
   expect(screen.getByText("NV 101")).toBeVisible();
   expect(screen.getByText("30 minute delay")).toBeVisible();
   expect(screen.getByText("Synthetic standard recovery")).toBeVisible();
+  expect(
+    screen.getByRole("heading", { name: "Recommended itinerary" }),
+  ).toBeVisible();
+  expect(screen.getByText("REC-FLT-NV1003")).toBeVisible();
+  expect(screen.getByText("Supporting evidence")).toBeVisible();
+  expect(screen.getByText("Rejected options and reasons (1)")).toBeVisible();
+});
+
+it("renders a clear escalation when recommendation evidence is insufficient", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ...workspacePayload,
+          recommendation: {
+            case_id: "CASE-0001",
+            outcome: "insufficient_evidence",
+            recommended_itinerary: null,
+            other_validated_options: [],
+            option_results: [],
+            evidence_references: [],
+            evidence_completeness: "insufficient",
+            escalation_reason:
+              "Seat evidence is missing for the candidate flights.",
+            ranking_method: "stable ranking",
+          },
+        }),
+        { status: 200 },
+      ),
+    ),
+  );
+  renderPage();
+  expect(
+    await screen.findByRole("heading", { name: "Evidence is insufficient" }),
+  ).toBeVisible();
+  expect(screen.getByText(/Seat evidence is missing/)).toBeVisible();
 });
 
 it("searches alternatives and shows passed, failed, not-evaluated and deferred validation", async () => {
@@ -64,7 +101,9 @@ it("searches alternatives and shows passed, failed, not-evaluated and deferred v
   );
   expect(await screen.findByText("Option 1")).toBeVisible();
   expect(
-    screen.getByText(/Seat inventory and ticket rules: not evaluated/i),
+    screen.getByText(
+      /Seat inventory and ticket rules: not evaluated by this manual explorer/i,
+    ),
   ).toBeVisible();
   await user.click(screen.getByRole("button", { name: "Validate candidate" }));
   expect(await screen.findByText("Structural checks passed")).toBeVisible();

@@ -19,7 +19,7 @@ def test_generator_returns_a_valid_recovery_dataset() -> None:
     assert dataset.metadata.generator_version == GENERATOR_VERSION
     assert dataset.metadata.seed == 20260811
     assert len(dataset.passengers) == 13
-    assert len(dataset.flights) == 20
+    assert len(dataset.flights) == 50
     assert len(dataset.bookings) == 10
     assert len(dataset.disruptions) == 10
     assert len(dataset.recovery_cases) == 10

@@ -41,6 +41,10 @@ from travelops_recovery_agent.workflow.persistence import (
     DuplicateActiveRunError,
     WorkflowRepository,
 )
+from travelops_recovery_agent.workflow.runtime import (
+    ApplicationGraphContextFactory,
+    UnavailableDecisionModel,
+)
 from travelops_recovery_agent.workflow.service import (
     DurableWorkflowService,
     ResumeRejectedError,
@@ -183,6 +187,78 @@ def test_tool_checkpoint_survives_store_disposal_and_resumes_without_repetition(
             sum(event.type is WorkflowEventType.TOOL_COMPLETED for event in events) == 1
         )
         assert [event.sequence for event in events] == list(range(1, len(events) + 1))
+    finally:
+        restarted_store.close()
+        restarted_engine.dispose()
+
+
+@pytest.mark.integration
+def test_validated_recommendation_checkpoint_resumes_without_duplicate_work(
+    workflow_database: tuple[Settings, WorkflowRepository, CheckpointStore],
+    test_database_url: str,
+) -> None:
+    settings, repository, first_store = workflow_database
+    first_engine = create_database_engine(
+        Settings(database_url=SecretStr(test_database_url))
+    )
+    first_sessions = create_session_factory(first_engine)
+    first_service = DurableWorkflowService(
+        repository,
+        first_store,
+        ApplicationGraphContextFactory(
+            first_sessions,
+            model_factory=lambda _: UnavailableDecisionModel(),
+        ),
+        enable_recommendations=True,
+    )
+    run = first_service.create_run("CASE-0001")
+    paused = first_service.execute(run.identity.run_id, max_steps=1)
+    paused_state = first_service.get_graph_state(run.identity.run_id)
+    assert paused.status is WorkflowStatus.PAUSED
+    assert paused_state is not None
+    assert paused_state["run_state"].recommendation is not None
+    assert tuple(paused_state["node_history"]) == ("validated_recommendation",)
+
+    first_store.close()
+    first_engine.dispose()
+    restarted_engine = create_database_engine(
+        Settings(database_url=SecretStr(test_database_url))
+    )
+    restarted_store = CheckpointStore(settings).open()
+    try:
+        restarted_service = DurableWorkflowService(
+            WorkflowRepository(create_session_factory(restarted_engine)),
+            restarted_store,
+            ApplicationGraphContextFactory(
+                create_session_factory(restarted_engine),
+                model_factory=lambda _: UnavailableDecisionModel(),
+            ),
+            enable_recommendations=True,
+        )
+        finished = restarted_service.execute(run.identity.run_id)
+        state = restarted_service.get_graph_state(run.identity.run_id)
+        events = restarted_service.list_events(run.identity.run_id, limit=250)
+
+        assert finished.status is WorkflowStatus.COMPLETED
+        assert state is not None
+        assert state["run_state"].recommendation is not None
+        assert state["run_state"].recommendation.recommended_itinerary is not None
+        assert tuple(state["node_history"]) == (
+            "validated_recommendation",
+            "completion",
+        )
+        recommendation_events = [
+            event
+            for event in events
+            if event.type
+            in {
+                WorkflowEventType.RECOMMENDATION_COMPLETED,
+                WorkflowEventType.RECOMMENDATION_ESCALATED,
+            }
+        ]
+        assert [event.type for event in recommendation_events] == [
+            WorkflowEventType.RECOMMENDATION_COMPLETED
+        ]
     finally:
         restarted_store.close()
         restarted_engine.dispose()
