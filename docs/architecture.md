@@ -259,6 +259,48 @@ flowchart LR
 ```
 
 Each addition must preserve the boundary rules in this document and remain removable behind a stable interface or feature flag when the phase is experimental.
+
+## Phase 12 context and capability boundary
+
+```mermaid
+flowchart LR
+    FACTS["Durable facts and safe observations"] --> CANDIDATES["Typed context candidates"]
+    HISTORY["Conversation turns"] --> SUMMARY["Derived summary with fact references"]
+    SUMMARY --> CANDIDATES
+    STATE["Workflow node, task, role, permissions, approval"] --> POLICY["Context and tool policy"]
+    CANDIDATES --> POLICY
+    POLICY -->|"selected, ordered, budgeted"| MODEL["Provider-neutral model request"]
+    POLICY -->|"included/excluded reasons"| INSPECTOR["Developer context inspector"]
+    POLICY -->|"minimum schemas"| MODEL
+    POLICY --> TRACE["travelops.trace.v1 context fields"]
+    STATE -. "remains authoritative" .-> EXECUTION["Application authorization and transactions"]
+```
+
+The `travelops.context.v1` object is a transient, derived model input. It is not
+durable graph state, conversation history, a database row, a raw tool envelope,
+or a provider message type. Each item links to durable fact identifiers and
+records scope, task/node applicability, authority, timestamps, freshness,
+sensitivity, explicitly estimated tokens, relevance, priority, conflict and
+supersession metadata.
+
+Selection rejects cross-case, unauthorized, stale, expired, secret,
+superseded, and untrusted evidence before ordering. Mandatory safety,
+authorization, approval, and execution facts rank first and are never
+truncated. A budget that cannot contain them produces a safe escalation before
+a model call. Non-mandatory oversized content may become a bounded derived view
+that retains source identifiers.
+
+The tool policy starts with no capabilities and permits a schema only when the
+task, node, role, permission, workflow state, and approval requirements all
+match. Schema visibility does not grant execution authority. The existing tool
+adapters, proposal service, transactional revalidation, database constraints,
+and idempotency ledger remain the enforcement boundary.
+
+Cache keys include schema/policy/cache version, case, operator, role,
+permissions, authorization scopes, task, node, workflow/approval state, budget,
+item fingerprints, source versions, summary versions, freshness time, and tool
+policy version. Cache invalidation can target one case and cannot return an
+entry across a case, user, role, permission, or scope boundary.
 ## Phase 8 durable workflow and live-progress path
 
 ```mermaid

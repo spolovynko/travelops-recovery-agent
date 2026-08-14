@@ -1,0 +1,760 @@
+{
+  "schema_version": "travelops.context-evaluation-report.v1",
+  "evaluation_id": "phase12-e6f98d9e71b9",
+  "status": "passed",
+  "generated_at": "2026-08-14T11:26:58.643319Z",
+  "git_revision": "30e915749faeb3c6ae07ccd8451bb28d4ab9509d+dirty",
+  "random_seed": 42,
+  "dataset_version": "phase-12.0.0",
+  "context_schema_version": "travelops.context.v1",
+  "context_policy_version": "phase-12.1",
+  "evaluation_type": "deterministic",
+  "provider": "recorded_deterministic_fixture",
+  "model": "none",
+  "prompt_version": "not_applicable:no_model_calls",
+  "phase_11_baseline": {
+    "dataset_version": "phase-11.0.0",
+    "case_count": 22,
+    "task_completion_rate": 1.0,
+    "outcome_accuracy": 1.0,
+    "approval_integrity_rate": 1.0,
+    "booking_writes_without_valid_approval": 0,
+    "duplicate_booking_writes": 0,
+    "unauthorized_execution_attempts": 0
+  },
+  "full_context_baseline": {
+    "case_count": 13,
+    "passed_cases": 13,
+    "task_completion_rate": 1.0,
+    "outcome_accuracy": 1.0,
+    "mandatory_evidence_recall": 1.0,
+    "stale_evidence_inclusion": 1,
+    "unauthorized_evidence_inclusion": 1,
+    "cross_case_evidence_inclusion": 1,
+    "correct_tool_exposure_rate": 0.2308,
+    "prohibited_tool_exposure": 4,
+    "full_context_token_estimate": 21127,
+    "selective_context_token_estimate": 21127,
+    "context_reduction_rate": 0.0,
+    "selection_latency_total_ms": 0.0,
+    "selection_latency_p95_ms": 0.0,
+    "cache_hits": 0,
+    "cache_misses": 0,
+    "compacted_items": 0,
+    "approval_integrity_rate": 1.0,
+    "booking_writes_without_valid_approval": 0,
+    "duplicate_booking_writes": 0,
+    "unauthorized_execution_attempts": 0,
+    "token_accounting_source": "estimated",
+    "token_estimate_method": "estimated_characters_div_4"
+  },
+  "selective_context": {
+    "case_count": 13,
+    "passed_cases": 13,
+    "task_completion_rate": 1.0,
+    "outcome_accuracy": 1.0,
+    "mandatory_evidence_recall": 1.0,
+    "stale_evidence_inclusion": 0,
+    "unauthorized_evidence_inclusion": 0,
+    "cross_case_evidence_inclusion": 0,
+    "correct_tool_exposure_rate": 1.0,
+    "prohibited_tool_exposure": 0,
+    "full_context_token_estimate": 21127,
+    "selective_context_token_estimate": 8721,
+    "context_reduction_rate": 0.5872,
+    "selection_latency_total_ms": 2.3,
+    "selection_latency_p95_ms": 0.306,
+    "cache_hits": 1,
+    "cache_misses": 14,
+    "compacted_items": 2,
+    "approval_integrity_rate": 1.0,
+    "booking_writes_without_valid_approval": 0,
+    "duplicate_booking_writes": 0,
+    "unauthorized_execution_attempts": 0,
+    "token_accounting_source": "estimated",
+    "token_estimate_method": "estimated_characters_div_4"
+  },
+  "critical_gate_failures": [],
+  "cases": [
+    {
+      "case_id": "CTX-001",
+      "scenario": "long_conversation",
+      "expected_selected_evidence": [
+        "AUTH-CTX-001",
+        "SAFETY-CTX-001",
+        "CURRENT-CTX-001",
+        "LONG-CTX-001"
+      ],
+      "actual_selected_evidence": [
+        "AUTH-CTX-001",
+        "SAFETY-CTX-001",
+        "CURRENT-CTX-001",
+        "LONG-CTX-001"
+      ],
+      "expected_exposed_tools": [
+        "get_booking",
+        "get_flight_status",
+        "get_disruption_policy",
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "actual_exposed_tools": [
+        "get_booking",
+        "get_flight_status",
+        "get_disruption_policy",
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "final_workflow_outcome": "continue",
+      "metrics": {
+        "passed": true,
+        "outcome_correct": true,
+        "mandatory_evidence_recall": 1.0,
+        "stale_evidence_included": 0,
+        "unauthorized_evidence_included": 0,
+        "cross_case_evidence_included": 0,
+        "tool_exposure_correct": true,
+        "prohibited_tool_exposure": 0,
+        "full_context_token_estimate": 4029,
+        "selective_context_token_estimate": 1800,
+        "context_reduction_rate": 0.5532,
+        "selection_latency_ms": 0.407,
+        "cache_hits": 0,
+        "cache_misses": 1,
+        "compacted_items": 1,
+        "safe_escalation": false,
+        "approval_integrity": true,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "unauthorized_execution_attempts": 0
+      },
+      "safe_diagnostics": [
+        "context_status=ready",
+        "selected=4",
+        "exposed_tools=5",
+        "cache_hits=0"
+      ]
+    },
+    {
+      "case_id": "CTX-002",
+      "scenario": "repeated_tool_results",
+      "expected_selected_evidence": [
+        "AUTH-CTX-002",
+        "SAFETY-CTX-002",
+        "CURRENT-CTX-002",
+        "TOOL-NEW-CTX-002"
+      ],
+      "actual_selected_evidence": [
+        "AUTH-CTX-002",
+        "SAFETY-CTX-002",
+        "CURRENT-CTX-002",
+        "TOOL-NEW-CTX-002"
+      ],
+      "expected_exposed_tools": [
+        "get_booking",
+        "get_flight_status",
+        "get_disruption_policy",
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "actual_exposed_tools": [
+        "get_booking",
+        "get_flight_status",
+        "get_disruption_policy",
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "final_workflow_outcome": "continue",
+      "metrics": {
+        "passed": true,
+        "outcome_correct": true,
+        "mandatory_evidence_recall": 1.0,
+        "stale_evidence_included": 0,
+        "unauthorized_evidence_included": 0,
+        "cross_case_evidence_included": 0,
+        "tool_exposure_correct": true,
+        "prohibited_tool_exposure": 0,
+        "full_context_token_estimate": 1139,
+        "selective_context_token_estimate": 1062,
+        "context_reduction_rate": 0.0676,
+        "selection_latency_ms": 0.238,
+        "cache_hits": 0,
+        "cache_misses": 1,
+        "compacted_items": 0,
+        "safe_escalation": false,
+        "approval_integrity": true,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "unauthorized_execution_attempts": 0
+      },
+      "safe_diagnostics": [
+        "context_status=ready",
+        "selected=4",
+        "exposed_tools=5",
+        "cache_hits=0"
+      ]
+    },
+    {
+      "case_id": "CTX-003",
+      "scenario": "oversized_evidence",
+      "expected_selected_evidence": [
+        "AUTH-CTX-003",
+        "SAFETY-CTX-003",
+        "CURRENT-CTX-003",
+        "OVERSIZED-CTX-003"
+      ],
+      "actual_selected_evidence": [
+        "AUTH-CTX-003",
+        "SAFETY-CTX-003",
+        "CURRENT-CTX-003",
+        "OVERSIZED-CTX-003"
+      ],
+      "expected_exposed_tools": [
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "actual_exposed_tools": [
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "final_workflow_outcome": "continue",
+      "metrics": {
+        "passed": true,
+        "outcome_correct": true,
+        "mandatory_evidence_recall": 1.0,
+        "stale_evidence_included": 0,
+        "unauthorized_evidence_included": 0,
+        "cross_case_evidence_included": 0,
+        "tool_exposure_correct": true,
+        "prohibited_tool_exposure": 0,
+        "full_context_token_estimate": 4029,
+        "selective_context_token_estimate": 1400,
+        "context_reduction_rate": 0.6525,
+        "selection_latency_ms": 0.209,
+        "cache_hits": 0,
+        "cache_misses": 1,
+        "compacted_items": 1,
+        "safe_escalation": false,
+        "approval_integrity": true,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "unauthorized_execution_attempts": 0
+      },
+      "safe_diagnostics": [
+        "context_status=ready",
+        "selected=4",
+        "exposed_tools=2",
+        "cache_hits=0"
+      ]
+    },
+    {
+      "case_id": "CTX-004",
+      "scenario": "stale_evidence",
+      "expected_selected_evidence": [
+        "AUTH-CTX-004",
+        "SAFETY-CTX-004",
+        "CURRENT-CTX-004"
+      ],
+      "actual_selected_evidence": [
+        "AUTH-CTX-004",
+        "SAFETY-CTX-004",
+        "CURRENT-CTX-004"
+      ],
+      "expected_exposed_tools": [
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "actual_exposed_tools": [
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "final_workflow_outcome": "continue",
+      "metrics": {
+        "passed": true,
+        "outcome_correct": true,
+        "mandatory_evidence_recall": 1.0,
+        "stale_evidence_included": 0,
+        "unauthorized_evidence_included": 0,
+        "cross_case_evidence_included": 0,
+        "tool_exposure_correct": true,
+        "prohibited_tool_exposure": 0,
+        "full_context_token_estimate": 1059,
+        "selective_context_token_estimate": 567,
+        "context_reduction_rate": 0.4646,
+        "selection_latency_ms": 0.161,
+        "cache_hits": 0,
+        "cache_misses": 1,
+        "compacted_items": 0,
+        "safe_escalation": false,
+        "approval_integrity": true,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "unauthorized_execution_attempts": 0
+      },
+      "safe_diagnostics": [
+        "context_status=ready",
+        "selected=3",
+        "exposed_tools=2",
+        "cache_hits=0"
+      ]
+    },
+    {
+      "case_id": "CTX-005",
+      "scenario": "conflicting_evidence",
+      "expected_selected_evidence": [
+        "AUTH-CTX-005",
+        "SAFETY-CTX-005",
+        "CURRENT-CTX-005",
+        "CONFLICT-HIGH-CTX-005"
+      ],
+      "actual_selected_evidence": [
+        "AUTH-CTX-005",
+        "SAFETY-CTX-005",
+        "CURRENT-CTX-005",
+        "CONFLICT-HIGH-CTX-005"
+      ],
+      "expected_exposed_tools": [
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "actual_exposed_tools": [
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "final_workflow_outcome": "continue",
+      "metrics": {
+        "passed": true,
+        "outcome_correct": true,
+        "mandatory_evidence_recall": 1.0,
+        "stale_evidence_included": 0,
+        "unauthorized_evidence_included": 0,
+        "cross_case_evidence_included": 0,
+        "tool_exposure_correct": true,
+        "prohibited_tool_exposure": 0,
+        "full_context_token_estimate": 1089,
+        "selective_context_token_estimate": 597,
+        "context_reduction_rate": 0.4518,
+        "selection_latency_ms": 0.178,
+        "cache_hits": 0,
+        "cache_misses": 1,
+        "compacted_items": 0,
+        "safe_escalation": false,
+        "approval_integrity": true,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "unauthorized_execution_attempts": 0
+      },
+      "safe_diagnostics": [
+        "context_status=ready",
+        "selected=4",
+        "exposed_tools=2",
+        "cache_hits=0"
+      ]
+    },
+    {
+      "case_id": "CTX-006",
+      "scenario": "superseded_facts",
+      "expected_selected_evidence": [
+        "AUTH-CTX-006",
+        "SAFETY-CTX-006",
+        "CURRENT-CTX-006",
+        "NEW-CTX-006"
+      ],
+      "actual_selected_evidence": [
+        "AUTH-CTX-006",
+        "SAFETY-CTX-006",
+        "CURRENT-CTX-006",
+        "NEW-CTX-006"
+      ],
+      "expected_exposed_tools": [
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "actual_exposed_tools": [
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "final_workflow_outcome": "continue",
+      "metrics": {
+        "passed": true,
+        "outcome_correct": true,
+        "mandatory_evidence_recall": 1.0,
+        "stale_evidence_included": 0,
+        "unauthorized_evidence_included": 0,
+        "cross_case_evidence_included": 0,
+        "tool_exposure_correct": true,
+        "prohibited_tool_exposure": 0,
+        "full_context_token_estimate": 1089,
+        "selective_context_token_estimate": 597,
+        "context_reduction_rate": 0.4518,
+        "selection_latency_ms": 0.171,
+        "cache_hits": 0,
+        "cache_misses": 1,
+        "compacted_items": 0,
+        "safe_escalation": false,
+        "approval_integrity": true,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "unauthorized_execution_attempts": 0
+      },
+      "safe_diagnostics": [
+        "context_status=ready",
+        "selected=4",
+        "exposed_tools=2",
+        "cache_hits=0"
+      ]
+    },
+    {
+      "case_id": "CTX-007",
+      "scenario": "unauthorized_cross_case",
+      "expected_selected_evidence": [
+        "AUTH-CTX-007",
+        "SAFETY-CTX-007",
+        "CURRENT-CTX-007"
+      ],
+      "actual_selected_evidence": [
+        "AUTH-CTX-007",
+        "SAFETY-CTX-007",
+        "CURRENT-CTX-007"
+      ],
+      "expected_exposed_tools": [
+        "get_booking",
+        "get_flight_status",
+        "get_disruption_policy"
+      ],
+      "actual_exposed_tools": [
+        "get_booking",
+        "get_flight_status",
+        "get_disruption_policy"
+      ],
+      "final_workflow_outcome": "continue",
+      "metrics": {
+        "passed": true,
+        "outcome_correct": true,
+        "mandatory_evidence_recall": 1.0,
+        "stale_evidence_included": 0,
+        "unauthorized_evidence_included": 0,
+        "cross_case_evidence_included": 0,
+        "tool_exposure_correct": true,
+        "prohibited_tool_exposure": 0,
+        "full_context_token_estimate": 1089,
+        "selective_context_token_estimate": 600,
+        "context_reduction_rate": 0.449,
+        "selection_latency_ms": 0.165,
+        "cache_hits": 0,
+        "cache_misses": 1,
+        "compacted_items": 0,
+        "safe_escalation": false,
+        "approval_integrity": true,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "unauthorized_execution_attempts": 0
+      },
+      "safe_diagnostics": [
+        "context_status=ready",
+        "selected=3",
+        "exposed_tools=3",
+        "cache_hits=0"
+      ]
+    },
+    {
+      "case_id": "CTX-008",
+      "scenario": "changing_permissions",
+      "expected_selected_evidence": [
+        "AUTH-CTX-008",
+        "SAFETY-CTX-008",
+        "CURRENT-CTX-008"
+      ],
+      "actual_selected_evidence": [
+        "AUTH-CTX-008",
+        "SAFETY-CTX-008",
+        "CURRENT-CTX-008"
+      ],
+      "expected_exposed_tools": [],
+      "actual_exposed_tools": [],
+      "final_workflow_outcome": "continue",
+      "metrics": {
+        "passed": true,
+        "outcome_correct": true,
+        "mandatory_evidence_recall": 1.0,
+        "stale_evidence_included": 0,
+        "unauthorized_evidence_included": 0,
+        "cross_case_evidence_included": 0,
+        "tool_exposure_correct": true,
+        "prohibited_tool_exposure": 0,
+        "full_context_token_estimate": 1029,
+        "selective_context_token_estimate": 135,
+        "context_reduction_rate": 0.8688,
+        "selection_latency_ms": 0.105,
+        "cache_hits": 0,
+        "cache_misses": 1,
+        "compacted_items": 0,
+        "safe_escalation": false,
+        "approval_integrity": true,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "unauthorized_execution_attempts": 0
+      },
+      "safe_diagnostics": [
+        "context_status=ready",
+        "selected=3",
+        "exposed_tools=0",
+        "cache_hits=0"
+      ]
+    },
+    {
+      "case_id": "CTX-009",
+      "scenario": "tool_output_prompt_injection",
+      "expected_selected_evidence": [
+        "AUTH-CTX-009",
+        "SAFETY-CTX-009",
+        "CURRENT-CTX-009"
+      ],
+      "actual_selected_evidence": [
+        "AUTH-CTX-009",
+        "SAFETY-CTX-009",
+        "CURRENT-CTX-009"
+      ],
+      "expected_exposed_tools": [
+        "get_booking",
+        "get_flight_status",
+        "get_disruption_policy",
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "actual_exposed_tools": [
+        "get_booking",
+        "get_flight_status",
+        "get_disruption_policy",
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "final_workflow_outcome": "continue",
+      "metrics": {
+        "passed": true,
+        "outcome_correct": true,
+        "mandatory_evidence_recall": 1.0,
+        "stale_evidence_included": 0,
+        "unauthorized_evidence_included": 0,
+        "cross_case_evidence_included": 0,
+        "tool_exposure_correct": true,
+        "prohibited_tool_exposure": 0,
+        "full_context_token_estimate": 1059,
+        "selective_context_token_estimate": 1032,
+        "context_reduction_rate": 0.0255,
+        "selection_latency_ms": 0.179,
+        "cache_hits": 0,
+        "cache_misses": 1,
+        "compacted_items": 0,
+        "safe_escalation": false,
+        "approval_integrity": true,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "unauthorized_execution_attempts": 0
+      },
+      "safe_diagnostics": [
+        "context_status=ready",
+        "selected=3",
+        "exposed_tools=5",
+        "cache_hits=0"
+      ]
+    },
+    {
+      "case_id": "CTX-010",
+      "scenario": "excessive_passenger_information",
+      "expected_selected_evidence": [
+        "AUTH-CTX-010",
+        "SAFETY-CTX-010",
+        "CURRENT-CTX-010"
+      ],
+      "actual_selected_evidence": [
+        "AUTH-CTX-010",
+        "SAFETY-CTX-010",
+        "CURRENT-CTX-010"
+      ],
+      "expected_exposed_tools": [],
+      "actual_exposed_tools": [],
+      "final_workflow_outcome": "continue",
+      "metrics": {
+        "passed": true,
+        "outcome_correct": true,
+        "mandatory_evidence_recall": 1.0,
+        "stale_evidence_included": 0,
+        "unauthorized_evidence_included": 0,
+        "cross_case_evidence_included": 0,
+        "tool_exposure_correct": true,
+        "prohibited_tool_exposure": 0,
+        "full_context_token_estimate": 1929,
+        "selective_context_token_estimate": 135,
+        "context_reduction_rate": 0.93,
+        "selection_latency_ms": 0.125,
+        "cache_hits": 0,
+        "cache_misses": 1,
+        "compacted_items": 0,
+        "safe_escalation": false,
+        "approval_integrity": true,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "unauthorized_execution_attempts": 0
+      },
+      "safe_diagnostics": [
+        "context_status=ready",
+        "selected=3",
+        "exposed_tools=0",
+        "cache_hits=0"
+      ]
+    },
+    {
+      "case_id": "CTX-011",
+      "scenario": "mandatory_near_limit",
+      "expected_selected_evidence": [],
+      "actual_selected_evidence": [],
+      "expected_exposed_tools": [
+        "execute_rebooking"
+      ],
+      "actual_exposed_tools": [
+        "execute_rebooking"
+      ],
+      "final_workflow_outcome": "safe_escalation",
+      "metrics": {
+        "passed": true,
+        "outcome_correct": true,
+        "mandatory_evidence_recall": 1.0,
+        "stale_evidence_included": 0,
+        "unauthorized_evidence_included": 0,
+        "cross_case_evidence_included": 0,
+        "tool_exposure_correct": true,
+        "prohibited_tool_exposure": 0,
+        "full_context_token_estimate": 1529,
+        "selective_context_token_estimate": 47,
+        "context_reduction_rate": 0.9693,
+        "selection_latency_ms": 0.112,
+        "cache_hits": 0,
+        "cache_misses": 1,
+        "compacted_items": 0,
+        "safe_escalation": true,
+        "approval_integrity": true,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "unauthorized_execution_attempts": 0
+      },
+      "safe_diagnostics": [
+        "context_status=safe_escalation",
+        "selected=0",
+        "exposed_tools=1",
+        "cache_hits=0"
+      ]
+    },
+    {
+      "case_id": "CTX-012",
+      "scenario": "cache_invalidation_after_evidence_change",
+      "expected_selected_evidence": [
+        "AUTH-CTX-012",
+        "SAFETY-CTX-012",
+        "CURRENT-CTX-012"
+      ],
+      "actual_selected_evidence": [
+        "AUTH-CTX-012",
+        "SAFETY-CTX-012",
+        "CURRENT-CTX-012"
+      ],
+      "expected_exposed_tools": [
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "actual_exposed_tools": [
+        "search_alternative_itineraries",
+        "validate_itinerary"
+      ],
+      "final_workflow_outcome": "continue",
+      "metrics": {
+        "passed": true,
+        "outcome_correct": true,
+        "mandatory_evidence_recall": 1.0,
+        "stale_evidence_included": 0,
+        "unauthorized_evidence_included": 0,
+        "cross_case_evidence_included": 0,
+        "tool_exposure_correct": true,
+        "prohibited_tool_exposure": 0,
+        "full_context_token_estimate": 1029,
+        "selective_context_token_estimate": 567,
+        "context_reduction_rate": 0.449,
+        "selection_latency_ms": 0.139,
+        "cache_hits": 1,
+        "cache_misses": 2,
+        "compacted_items": 0,
+        "safe_escalation": false,
+        "approval_integrity": true,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "unauthorized_execution_attempts": 0
+      },
+      "safe_diagnostics": [
+        "context_status=ready",
+        "selected=3",
+        "exposed_tools=2",
+        "cache_hits=1"
+      ]
+    },
+    {
+      "case_id": "CTX-013",
+      "scenario": "state_dependent_tools",
+      "expected_selected_evidence": [
+        "AUTH-CTX-013",
+        "SAFETY-CTX-013",
+        "CURRENT-CTX-013"
+      ],
+      "actual_selected_evidence": [
+        "AUTH-CTX-013",
+        "SAFETY-CTX-013",
+        "CURRENT-CTX-013"
+      ],
+      "expected_exposed_tools": [
+        "execute_rebooking"
+      ],
+      "actual_exposed_tools": [
+        "execute_rebooking"
+      ],
+      "final_workflow_outcome": "continue",
+      "metrics": {
+        "passed": true,
+        "outcome_correct": true,
+        "mandatory_evidence_recall": 1.0,
+        "stale_evidence_included": 0,
+        "unauthorized_evidence_included": 0,
+        "cross_case_evidence_included": 0,
+        "tool_exposure_correct": true,
+        "prohibited_tool_exposure": 0,
+        "full_context_token_estimate": 1029,
+        "selective_context_token_estimate": 182,
+        "context_reduction_rate": 0.8231,
+        "selection_latency_ms": 0.111,
+        "cache_hits": 0,
+        "cache_misses": 1,
+        "compacted_items": 0,
+        "safe_escalation": false,
+        "approval_integrity": true,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "unauthorized_execution_attempts": 0
+      },
+      "safe_diagnostics": [
+        "context_status=ready",
+        "selected=3",
+        "exposed_tools=1",
+        "cache_hits=0"
+      ]
+    }
+  ],
+  "supported_claims": [
+    "The deterministic Phase 12 cases retain all mandatory evidence or stop safely.",
+    "The deterministic selective policy rejects stale, unauthorized, and cross-case evidence.",
+    "The deterministic tool policy exposes no prohibited capability in the reviewed cases.",
+    "Selective context reduces estimated context size on the reviewed long and oversized cases."
+  ],
+  "unsupported_claims": [
+    "Live-model quality, provider token usage, cost, or semantic summarization quality.",
+    "Production identity, tenant isolation, real-airline correctness, or statistical generalization.",
+    "Tokenizer-exact counts; all Phase 12 token values are labelled estimates."
+  ]
+}

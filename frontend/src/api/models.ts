@@ -399,3 +399,127 @@ export interface EvaluationReport {
     safe_diagnostics: string[];
   }[];
 }
+
+export interface GovernedContextTool {
+  name: string;
+  kind: "read" | "proposal" | "write";
+  exposed: boolean;
+  reason: string;
+  token_estimate: number;
+  input_schema: Record<string, unknown> | null;
+}
+
+export interface ContextInspectorReport {
+  schema_version: string;
+  policy_version: string;
+  build_id: string;
+  status: "ready" | "safe_escalation";
+  case_id: string;
+  task: string;
+  workflow_node: string;
+  selected: {
+    evidence_id: string;
+    source_type: string;
+    authority: number;
+    freshness: string;
+    sensitivity: string;
+    content: string;
+    original_token_estimate: number;
+    selected_token_estimate: number;
+    compacted: boolean;
+    durable_fact_ids: string[];
+    conflicts_with: string[];
+    supersedes: string[];
+  }[];
+  decisions: {
+    evidence_id: string;
+    disposition: "included" | "excluded" | "compacted" | "rejected";
+    reason: string;
+    mandatory: boolean;
+    token_estimate: number;
+    detail: string;
+  }[];
+  token_accounting: {
+    budget: number;
+    selected_estimate: number;
+    tool_schema_estimate: number;
+    remaining_estimate: number;
+    estimate_method: string;
+    provider_exact: false;
+  };
+  mandatory_evidence_coverage: number;
+  stale_rejection_count: number;
+  unauthorized_rejection_count: number;
+  cross_case_rejection_count: number;
+  conflict_count: number;
+  compacted_count: number;
+  excluded_count: number;
+  cache: { hit: boolean; key_reference: string; cache_version: string };
+  selection_latency_ms: number;
+  tools: GovernedContextTool[];
+  summary_provenance: {
+    summary_id: string;
+    referenced_evidence_ids: string[];
+    valid: boolean;
+    invalidation_reason: string | null;
+  }[];
+  escalation_reason: string | null;
+}
+
+export interface Phase12EvaluationReport {
+  schema_version: string;
+  evaluation_id: string;
+  status: "passed" | "failed";
+  generated_at: string;
+  git_revision: string;
+  random_seed: number;
+  dataset_version: string;
+  context_schema_version: string;
+  context_policy_version: string;
+  evaluation_type: "deterministic";
+  provider: "recorded_deterministic_fixture";
+  model: "none";
+  prompt_version: string;
+  phase_11_baseline: {
+    dataset_version: string;
+    case_count: number;
+    task_completion_rate: number;
+    outcome_accuracy: number;
+    approval_integrity_rate: number;
+    booking_writes_without_valid_approval: number;
+    duplicate_booking_writes: number;
+    unauthorized_execution_attempts: number;
+  };
+  full_context_baseline: ContextEvaluationAggregate;
+  selective_context: ContextEvaluationAggregate;
+  critical_gate_failures: string[];
+  supported_claims: string[];
+  unsupported_claims: string[];
+}
+
+export interface ContextEvaluationAggregate {
+  case_count: number;
+  passed_cases: number;
+  task_completion_rate: number;
+  outcome_accuracy: number;
+  mandatory_evidence_recall: number;
+  stale_evidence_inclusion: number;
+  unauthorized_evidence_inclusion: number;
+  cross_case_evidence_inclusion: number;
+  correct_tool_exposure_rate: number;
+  prohibited_tool_exposure: number;
+  full_context_token_estimate: number;
+  selective_context_token_estimate: number;
+  context_reduction_rate: number;
+  selection_latency_total_ms: number;
+  selection_latency_p95_ms: number;
+  cache_hits: number;
+  cache_misses: number;
+  compacted_items: number;
+  approval_integrity_rate: number;
+  booking_writes_without_valid_approval: number;
+  duplicate_booking_writes: number;
+  unauthorized_execution_attempts: number;
+  token_accounting_source: "estimated";
+  token_estimate_method: string;
+}

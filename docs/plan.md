@@ -364,6 +364,10 @@ The full system starts from documented commands, CI passes, evaluation results a
 
 ## After the first release
 
-The project continues through [Phases 12–20](roadmap.md): context engineering, replanning, concurrency, memory, model routing, advanced evaluation, policy RAG, a measured multi-agent experiment, and MCP integration.
+Phase 12 context engineering and tool governance is complete while Phase 11
+remains the frozen first-release comparison. The project continues through
+[Phases 13–20](roadmap.md): replanning, concurrency, memory, model routing,
+advanced evaluation, policy RAG, a measured multi-agent experiment, and MCP
+integration.
 
 Voice interaction, multiple real-world tenants, hotel or ground-transport fulfillment, and production cloud deployment remain outside the committed learning track.

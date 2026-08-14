@@ -90,6 +90,7 @@ def test_model_request_contains_context_but_not_application_internals() -> None:
         "turn",
         "messages",
         "observations",
+        "context_items",
         "tools",
     }
     serialized = request.model_dump_json()

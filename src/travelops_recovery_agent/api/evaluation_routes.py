@@ -6,6 +6,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from travelops_recovery_agent.api.recovery_schemas import ApiErrorDetail, ApiErrorView
+from travelops_recovery_agent.context_evaluation.models import ContextEvaluationReport
 from travelops_recovery_agent.evaluation.models import EvaluationReport
 
 
@@ -28,6 +29,30 @@ def create_evaluation_router() -> APIRouter:
                         message=(
                             "The deterministic evaluation report has not been generated. "
                             "Run the documented Phase 11 evaluation command."
+                        ),
+                        retryable=False,
+                    )
+                ).model_dump(mode="json"),
+            )
+
+    @router.get("/phase-12", response_model=ContextEvaluationReport)
+    def get_phase_12_evaluation(
+        request: Request,
+    ) -> ContextEvaluationReport | JSONResponse:
+        path: Path = request.app.state.settings.phase_12_evaluation_report_path
+        try:
+            return ContextEvaluationReport.model_validate_json(
+                path.read_text(encoding="utf-8")
+            )
+        except FileNotFoundError:
+            return JSONResponse(
+                status_code=503,
+                content=ApiErrorView(
+                    error=ApiErrorDetail(
+                        code="service_unavailable",
+                        message=(
+                            "The Phase 12 context report has not been generated. "
+                            "Run the documented context evaluation command."
                         ),
                         retryable=False,
                     )

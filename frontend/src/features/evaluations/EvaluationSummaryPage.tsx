@@ -21,6 +21,10 @@ export function EvaluationSummaryPage() {
     queryKey: ["evaluation", "phase-11"],
     queryFn: recoveryApi.getPhase11Evaluation,
   });
+  const contextQuery = useQuery({
+    queryKey: ["evaluation", "phase-12"],
+    queryFn: recoveryApi.getPhase12Evaluation,
+  });
 
   return (
     <div className="page evaluation-page">
@@ -39,7 +43,109 @@ export function EvaluationSummaryPage() {
         <ErrorState error={query.error} onRetry={() => void query.refetch()} />
       )}
       {query.data && <EvaluationContent report={query.data} />}
+      {contextQuery.isPending && (
+        <LoadingState label="Loading context experiment report" />
+      )}
+      {contextQuery.isError && (
+        <ErrorState
+          error={contextQuery.error}
+          onRetry={() => void contextQuery.refetch()}
+        />
+      )}
+      {contextQuery.data && <ContextComparison report={contextQuery.data} />}
     </div>
+  );
+}
+
+function ContextComparison({
+  report,
+}: {
+  report: Awaited<ReturnType<typeof recoveryApi.getPhase12Evaluation>>;
+}) {
+  const baseline = report.full_context_baseline;
+  const selective = report.selective_context;
+  return (
+    <section
+      className="context-comparison"
+      aria-labelledby="context-comparison-heading"
+    >
+      <div className="section-heading-row">
+        <div>
+          <p className="eyebrow">Phase 12 deterministic experiment</p>
+          <h2 id="context-comparison-heading">
+            Full context versus selective context
+          </h2>
+        </div>
+        <span className={`comparison-status ${report.status}`}>
+          {report.status}
+        </span>
+      </div>
+      <div
+        className="slice-table"
+        role="region"
+        aria-label="Phase 11 and Phase 12 context comparison"
+        tabIndex={0}
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Full context</th>
+              <th>Selective context</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Task completion</th>
+              <td>{percent(baseline.task_completion_rate)}</td>
+              <td>{percent(selective.task_completion_rate)}</td>
+            </tr>
+            <tr>
+              <th scope="row">Mandatory evidence recall</th>
+              <td>Not governed</td>
+              <td>{percent(selective.mandatory_evidence_recall)}</td>
+            </tr>
+            <tr>
+              <th scope="row">Stale / unauthorized / cross-case included</th>
+              <td>
+                {baseline.stale_evidence_inclusion} /{" "}
+                {baseline.unauthorized_evidence_inclusion} /{" "}
+                {baseline.cross_case_evidence_inclusion}
+              </td>
+              <td>
+                {selective.stale_evidence_inclusion} /{" "}
+                {selective.unauthorized_evidence_inclusion} /{" "}
+                {selective.cross_case_evidence_inclusion}
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Correct tool exposure</th>
+              <td>{percent(baseline.correct_tool_exposure_rate)}</td>
+              <td>{percent(selective.correct_tool_exposure_rate)}</td>
+            </tr>
+            <tr>
+              <th scope="row">Prohibited tool exposure</th>
+              <td>{baseline.prohibited_tool_exposure}</td>
+              <td>{selective.prohibited_tool_exposure}</td>
+            </tr>
+            <tr>
+              <th scope="row">Estimated context tokens</th>
+              <td>{baseline.full_context_token_estimate}</td>
+              <td>{selective.selective_context_token_estimate}</td>
+            </tr>
+            <tr>
+              <th scope="row">Context reduction</th>
+              <td>0%</td>
+              <td>{percent(selective.context_reduction_rate)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="context-note">
+        Token values are labelled estimates ({selective.token_estimate_method});
+        no live model was called.
+      </p>
+    </section>
   );
 }
 

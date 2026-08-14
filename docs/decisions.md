@@ -1013,6 +1013,98 @@ validation fail if failure injection is enabled with the production environment.
 **Consequences:** Fault controls are reproducible in tests and cannot be enabled
 accidentally in a valid production configuration.
 
+## D-062 — Keep constructed context separate from every source of truth
+
+**Status:** Accepted
+
+**Decision:** Use versioned `travelops.context.v1` contracts as a transient,
+provider-neutral view over durable facts. Context items retain source IDs and
+governance metadata but are not database entities, graph state, raw tool
+results, conversation history, or provider messages.
+
+**Consequences:** Model input can be inspected and reproduced without letting a
+summary or prompt become authoritative. Callers must deliberately project
+durable sources into context candidates.
+
+## D-063 — Select and order evidence with a deterministic fail-closed policy
+
+**Status:** Accepted
+
+**Decision:** Reject cross-case, unauthorized, stale, expired, secret,
+superseded, and untrusted evidence before deterministic ordering by mandatory
+status, priority, authority, relevance, observation time, and evidence ID.
+Never truncate mandatory safety, authorization, approval, or execution
+evidence; stop safely when it cannot fit.
+
+**Consequences:** Every decision has a machine-readable reason and context
+cannot silently trade safety evidence for token savings.
+
+## D-064 — Treat conversation summaries as invalidatable derived views
+
+**Status:** Accepted
+
+**Decision:** The required CI compactor is deterministic, category-aware, and
+bounded. It retains facts, decisions, hypotheses, completed work, unresolved
+constraints, and operator instructions separately; references durable evidence
+and source versions; excludes sensitive turns; and invalidates when any source
+changes or disappears.
+
+**Consequences:** Long cases can shrink without allowing summaries to override
+newer or more authoritative evidence. Optional future model summarization must
+validate against this contract.
+
+## D-065 — Govern tool schemas independently from execution authority
+
+**Status:** Accepted
+
+**Decision:** Begin with no visible capabilities and expose only schemas whose
+task, node, role, permission, workflow state, and approval requirements match.
+Keep execution authorization, validation, approval, revalidation, idempotency,
+and transactions in their existing application/database boundaries.
+
+**Consequences:** Prompt injection cannot add a tool or grant a role, and a
+visible tool still cannot bypass server-side enforcement.
+
+## D-066 — Cache context only with complete authorization and version inputs
+
+**Status:** Accepted
+
+**Decision:** Include policy/schema/cache versions, case, operator, role,
+permissions, scopes, workflow/approval state, task/node, budget, evidence
+fingerprints, summary versions, freshness time, and tool-policy version in the
+cache key. Support case-scoped invalidation and bounded in-memory retention.
+
+**Consequences:** A hit cannot cross cases, users, roles, permissions, or
+authorization scopes. Cache value is measurable without becoming durable
+workflow state.
+
+## D-067 — Extend the existing trace schema and restrict the inspector
+
+**Status:** Accepted
+
+**Decision:** Add context build, compaction, and tool-governance kinds to
+`travelops.trace.v1`; record aggregate counts, estimates, latency, cache, and
+safe escalation. Serve the inspector only outside production and render safe
+text rather than raw prompts, credentials, headers, cookies, secrets, or full
+passenger data.
+
+**Consequences:** Context decisions correlate with existing request/workflow/
+case/evaluation identifiers without a second telemetry system or production
+debug endpoint.
+
+## D-068 — Retain Phase 12 because the deterministic experiment meets its gate
+
+**Status:** Accepted
+
+**Decision:** Keep the selective layer enabled for explicit Phase 12 governed
+model requests because the 13-case experiment preserves task/outcome accuracy
+and mandatory coverage, produces zero prohibited evidence/tool inclusion, and
+reduces the labelled context estimate by 58.72%.
+
+**Consequences:** The result supports only the reviewed deterministic fixtures.
+It does not claim live-model quality or tokenizer-exact savings; future provider
+evidence may justify changing the defaults.
+
 ## Decision template
 
 ```markdown

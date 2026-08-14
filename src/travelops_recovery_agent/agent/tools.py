@@ -30,10 +30,16 @@ def to_model_tool_definition(tool_schema: ToolSchema) -> ModelToolDefinition:
     )
 
 
-def get_model_tool_definitions() -> tuple[ModelToolDefinition, ...]:
-    """Return detached definitions for exactly the registered read-only tools."""
+def get_model_tool_definitions(
+    names: frozenset[str] | None = None,
+) -> tuple[ModelToolDefinition, ...]:
+    """Return detached definitions for allowed registered read-only tools."""
 
-    return tuple(to_model_tool_definition(schema) for schema in TOOL_SCHEMAS)
+    return tuple(
+        to_model_tool_definition(schema)
+        for schema in TOOL_SCHEMAS
+        if names is None or schema.name in names
+    )
 
 
 def fingerprint_tool_call(decision: CallToolDecision) -> str:

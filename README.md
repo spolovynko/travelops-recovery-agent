@@ -382,6 +382,55 @@ production scale, live-model semantic quality, or statistical generalization.
 See [the Phase 11 notes](docs/notes/phase-11.md) and
 [release notes](docs/release-notes/v0.1.0.md).
 
+## Phase 12 governed model context
+
+Phase 12 adds a provider-neutral context boundary without changing the frozen
+Phase 11 workflow or its deterministic safety enforcement. Every candidate
+evidence item carries case and authorization scope, task/node applicability,
+authority, timestamps and freshness, sensitivity, a labelled token estimate,
+priority/relevance, conflicts, supersession, and durable fact references.
+Selection is deterministic and records a reason for every included, excluded,
+compacted, or rejected item. Mandatory authorization, approval, safety, and
+execution evidence is never truncated: if it cannot fit, the model call stops
+safely.
+
+Tool schemas are governed by task, workflow node, role, permission, approval,
+and workflow state. The policy is deny-by-default and exposes the minimum
+matching schema. Visibility remains separate from the existing server-side
+authorization, exact approval, revalidation, idempotency, and transaction
+boundary.
+
+```powershell
+uv run --locked python -m travelops_recovery_agent.context_evaluation.cli validate
+uv run --locked python -m travelops_recovery_agent.context_evaluation.cli run `
+  --seed 42 --output-dir reports
+
+# Start the developer API, then open /developer/context
+$env:TRAVELOPS_ENVIRONMENT = "development"
+uv run --locked uvicorn travelops_recovery_agent.api.app:create_app `
+  --factory --host 127.0.0.1 --port 8000
+```
+
+The reviewed `phase-12.0.0` experiment passed 13/13 cases. Against the
+Phase 11-style full-context comparison, selective context retained 100% task
+and outcome accuracy, achieved 100% mandatory-evidence coverage, reduced the
+provider-neutral context estimate from 21,127 to 8,721 tokens (58.72%), rejected
+all stale, unauthorized, and cross-case evidence, and exposed zero prohibited
+tools. Estimates use the explicitly labelled `estimated_characters_div_4`
+method; no provider tokenizer or live model was used. See
+[the Phase 12 notes](docs/notes/phase-12.md) and the generated
+[comparison report](reports/phase-12-context-evaluation.md).
+
+### Phase 12 portfolio evidence
+
+![Context inspector and budget accounting](docs/screenshots/phase-12-context-budget.png)
+
+![Evidence inclusion and exclusion reasons](docs/screenshots/phase-12-evidence-reasons.png)
+
+![Governed tool exposure](docs/screenshots/phase-12-tool-governance.png)
+
+![Phase 11 full-context versus Phase 12 selective-context comparison](docs/screenshots/phase-12-evaluation-comparison.png)
+
 ## Complete local stack
 
 Set a strong alphanumeric database password outside committed files, then start
@@ -408,7 +457,9 @@ security review, governed telemetry, alerting, and incident response.
 
 ## Current status
 
-Phase 11 is complete and preserved as the comparison baseline for Phases 12–20.
+Phase 12 is complete. Phase 11 remains frozen as the v0.1.0 comparison baseline.
+The selective layer is explicit and removable; deterministic application rules
+remain authoritative.
 The original itinerary and immutable audit remain intact; exact human approval,
 fresh transactional revalidation, database idempotency, concurrency protection,
 and all Phase 6–10 equivalence behavior remain release invariants. No real

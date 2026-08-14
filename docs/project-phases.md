@@ -100,6 +100,9 @@ The [UI specification](ui.md) maps visible operator and developer-facing UI incr
 
 - Reduces confused decisions by sending the model only relevant, current, authorized evidence and tools.
 - Controls token growth and records context choices, improving cost, latency, privacy, and debuggability.
+- Complete: versioned typed context, deterministic selection and compaction,
+  deny-by-default tool governance, isolated cache keys, privacy-safe tracing,
+  developer inspector, and a 13-case full-context comparison.
 
 ### Phase 13 — planning and replanning
 

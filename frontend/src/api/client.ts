@@ -2,6 +2,8 @@ import type {
   AlternativeSearchResult,
   ApiErrorPayload,
   EvaluationReport,
+  ContextInspectorReport,
+  Phase12EvaluationReport,
   ItineraryValidation,
   RecoveryCaseQueue,
   RecoveryCaseWorkspace,
@@ -62,6 +64,25 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const recoveryApi = {
   getPhase11Evaluation: () =>
     request<EvaluationReport>("/api/v1/evaluations/phase-11"),
+  getPhase12Evaluation: () =>
+    request<Phase12EvaluationReport>("/api/v1/evaluations/phase-12"),
+  inspectContext: (input: {
+    case_id: string;
+    task: string;
+    workflow_node: string;
+    operator_role: string;
+    approval_status?: string;
+    workflow_status?: string;
+  }) => {
+    const query = new URLSearchParams(
+      Object.entries(input).filter((entry): entry is [string, string] =>
+        Boolean(entry[1]),
+      ),
+    );
+    return request<ContextInspectorReport>(
+      `/api/v1/developer/context-inspector?${query.toString()}`,
+    );
+  },
   listCases: () => request<RecoveryCaseQueue>("/api/v1/recovery-cases"),
   getCase: (caseId: string) =>
     request<RecoveryCaseWorkspace>(

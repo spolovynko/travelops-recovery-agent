@@ -14,6 +14,11 @@ This track begins only after the Phase 11 release is reproducible and evaluated.
 
 ## Phase 12 — context engineering and tool governance
 
+**Status: complete.** Dataset `phase-12.0.0`, schema
+`travelops.context.v1`, and policy `phase-12.1` provide the deterministic
+comparison evidence. Full details and limitations are in
+[the Phase 12 notes](notes/phase-12.md).
+
 ### Why this phase exists
 
 The core agent can accumulate messages, evidence, tool results, and schemas until irrelevant or stale information harms decisions. A production agent needs an explicit policy for what enters the model context and which tools are visible at each step.

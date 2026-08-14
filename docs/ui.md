@@ -21,6 +21,7 @@ The UI is a core part of the learning project. It makes the agent's state, evide
 | `/cases/:caseId/approval/:proposalId` | Approval review | Compare the exact old and proposed itineraries |
 | `/runs/:runId` | Run inspector | Review state transitions, tools, retries, budgets, and errors |
 | `/evaluations` | Evaluation dashboard | Compare versions, slices, failures, cost, and latency |
+| `/developer/context` | Context inspector | Inspect selected/rejected evidence, budgets, cache, and governed tools outside production |
 | `/settings/memory` | Memory controls | Inspect, correct, expire, and delete retained preferences |
 | `/integrations/mcp` | MCP diagnostics | Inspect exposed capabilities and protocol test results |
 
@@ -267,6 +268,27 @@ The status is announced with `role="status"`, tables use headings and a labelled
 keyboard-scrollable region, focus remains visible, and critical zero-write
 metrics are named rather than conveyed by colour alone. The existing workflow
 SSE snapshot/cursor/reconnect behavior remains unchanged.
+
+### Phase 12 context inspector implementation
+
+`/developer/context` selects a case, task, workflow node, operator role,
+approval status, and workflow status. It shows schema and policy versions,
+cache hit/miss, selection latency, total/selected/tool/remaining estimated
+tokens, mandatory-evidence coverage, every evidence disposition and reason,
+selected safe text, freshness and authority, conflicts and supersession, and
+exposed/denied tools with governance reasons.
+
+The route returns 404 in production. It never sends credentials, headers,
+cookies, raw prompts, secrets, unrestricted tool output, or full passenger
+records. React renders all returned values as text. The evidence table is a
+labelled keyboard-scrollable region; form controls have labels, status is
+announced, and loading/error/empty states explain the next action. The layout
+collapses to one column on narrow screens.
+
+The evaluation page also displays the frozen full-context versus selective
+comparison with accuracy, mandatory recall, stale/unauthorized/cross-case
+inclusion, tool exposure, estimated context size, and reduction. Token values
+are explicitly labelled as estimates rather than provider-exact usage.
 
 ## UI definition of done
 

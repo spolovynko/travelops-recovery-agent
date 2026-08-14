@@ -2,10 +2,21 @@
 
 ## Current state
 
-- **Current phase:** Phase 11 — failure testing, evaluation, and first release
+- **Current phase:** Phase 12 — context engineering and tool governance
 - **Status:** Complete
-- **Last completed result:** Frozen `phase-11.0.0` benchmark, privacy-safe tracing, deterministic failure/recovery controls, evaluation UI, complete Compose stack, and credential-free CI baseline
-- **Next gate:** Preserve this baseline; begin Phase 12 only when explicitly requested
+- **Last completed result:** Versioned context selection, deterministic compaction, deny-by-default tool governance, isolated caching, developer inspector, and passing `phase-12.0.0` comparison
+- **Next gate:** Preserve Phase 11 and Phase 12 evidence; begin Phase 13 only when explicitly requested
+
+## Concepts confirmed in Phase 12
+
+- Durable workflow state versus constructed model context versus conversation history
+- Evidence provenance, scope, authority, freshness, sensitivity, conflict, and supersession
+- Deterministic selection, ordering, compaction, truncation, and safe budget failure
+- Derived conversation summaries with source-version invalidation
+- Capability discovery and visibility versus server-side execution authorization
+- Cache keys as authorization and freshness boundaries
+- Labelled provider-neutral token estimates versus tokenizer-exact usage
+- Context inspection and trace correlation without raw prompts or passenger records
 
 ## Concepts confirmed in Phase 11
 
@@ -529,3 +540,37 @@ operational monitoring remain outside this synthetic phase.
 
 **Next smallest step:** Review Phase 10. Begin Phase 11 only after an explicit
 request.
+
+## Session 12 — 2026-08-14
+
+**Phase:** Phase 12 — context engineering and tool governance
+
+**Built:** Added `travelops.context.v1` evidence, request, selection, accounting,
+cache, summary, and tool-governance contracts; deterministic filtering,
+conflict/supersession resolution, ordering, compaction and safe escalation;
+case/role/scope/version-isolated caching; a deterministic conversation
+compactor with invalidation; governed provider-neutral model requests; context
+trace events; the non-production `/developer/context` inspector API and React
+page; Phase 11/Phase 12 comparison UI; the 13-case `phase-12.0.0` dataset,
+harness, reports, defect gates, tests, and credential-free CI commands.
+
+**Verified:** The Phase 11 baseline reran 22/22 with its semantic hash and all
+critical write counters unchanged. Phase 12 passed 13/13 with 100% task/outcome
+accuracy and mandatory-evidence coverage, zero stale/unauthorized/cross-case
+evidence inclusion, zero prohibited tools, and a 58.72% estimated context
+reduction. Full verification commands and environment-dependent results are
+recorded in the Phase 12 notes and final handoff.
+
+**Concepts confirmed:** Constructed context is a derived model view; mandatory
+evidence cannot be traded for budget; summaries cite and invalidate against
+durable facts; tool visibility is not authorization; caches carry the complete
+scope and policy identity; estimated tokens must not be labelled exact.
+
+**Still unclear:** Live-model quality, tokenizer-exact usage, production identity
+and tenant enforcement, distributed cache invalidation, external provider
+schemas, and operational-scale latency remain production gaps.
+
+**Decisions:** D-062 through D-068.
+
+**Next smallest step:** Preserve the Phase 12 reports and begin Phase 13 only
+after an explicit request.

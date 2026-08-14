@@ -209,7 +209,18 @@ class OllamaDecisionModel:
             {
                 "role": "user",
                 "content": (
-                    "Safe structured observations for this turn:\n"
+                    "Selected governed context for this turn:\n"
+                    + json.dumps(
+                        [
+                            item.model_dump(mode="json")
+                            for item in request.context_items
+                        ],
+                        allow_nan=False,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                        sort_keys=True,
+                    )
+                    + "\nSafe structured observations for this turn:\n"
                     + json.dumps(
                         [
                             observation.model_dump(mode="json")

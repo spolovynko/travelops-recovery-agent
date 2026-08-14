@@ -24,6 +24,17 @@ class ModelToolDefinition(AgentContractModel):
     input_schema: dict[str, JsonValue]
 
 
+class ModelContextItem(AgentContractModel):
+    """Selected provider-neutral context projected from the Phase 12 builder."""
+
+    evidence_id: ReferenceText
+    source_type: ReferenceText
+    authority: Annotated[int, Field(ge=0, le=4)]
+    freshness: ReferenceText
+    content: str = Field(min_length=1, max_length=12_000)
+    compacted: bool = False
+
+
 class ModelRequest(AgentContractModel):
     """Bounded provider-neutral context for one model turn."""
 
@@ -32,7 +43,8 @@ class ModelRequest(AgentContractModel):
     turn: Annotated[int, Field(ge=1, le=100)]
     messages: Annotated[tuple[ConversationMessage, ...], Field(max_length=201)] = ()
     observations: Annotated[tuple[ToolObservation, ...], Field(max_length=100)] = ()
-    tools: Annotated[tuple[ModelToolDefinition, ...], Field(min_length=1, max_length=5)]
+    context_items: Annotated[tuple[ModelContextItem, ...], Field(max_length=100)] = ()
+    tools: Annotated[tuple[ModelToolDefinition, ...], Field(max_length=5)]
 
     @model_validator(mode="after")
     def validate_request_references(self) -> Self:
@@ -53,6 +65,9 @@ class ModelRequest(AgentContractModel):
         }
         if not message_observations.issubset(observation_ids):
             raise ValueError("model tool messages must reference supplied observations")
+        context_ids = [item.evidence_id for item in self.context_items]
+        if len(context_ids) != len(set(context_ids)):
+            raise ValueError("model context evidence identifiers must be unique")
         return self
 
 

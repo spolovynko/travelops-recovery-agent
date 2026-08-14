@@ -20,6 +20,7 @@ export function AppShell() {
           <nav aria-label="Primary navigation">
             <Link to="/cases">Cases</Link>
             <Link to="/evaluations">Evaluation</Link>
+            <Link to="/developer/context">Context</Link>
           </nav>
           <div className="environment">
             <span aria-hidden="true">●</span> Synthetic operations

@@ -28,6 +28,9 @@ class TraceKind(StrEnum):
     INTERRUPT = "interrupt"
     TERMINAL_OUTCOME = "terminal_outcome"
     EVALUATION_CASE = "evaluation_case"
+    CONTEXT_BUILD = "context_build"
+    CONTEXT_COMPACTION = "context_compaction"
+    TOOL_GOVERNANCE = "tool_governance"
 
 
 def safe_reference(value: str) -> str:

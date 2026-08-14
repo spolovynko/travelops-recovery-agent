@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     failure_injection_enabled: bool = False
     failure_injection_seed: int = 42
     evaluation_report_path: Path = Path("reports/phase-11-evaluation.json")
+    phase_12_evaluation_report_path: Path = Path(
+        "reports/phase-12-context-evaluation.json"
+    )
 
     @model_validator(mode="after")
     def reject_production_failure_injection(self) -> "Settings":
