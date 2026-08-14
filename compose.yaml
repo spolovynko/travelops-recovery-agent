@@ -22,5 +22,71 @@ services:
       retries: 10
       start_period: 5s
 
+  migrate:
+    build:
+      context: .
+    environment:
+      TRAVELOPS_ENVIRONMENT: production
+      TRAVELOPS_DATABASE_URL: postgresql+psycopg://travelops:${TRAVELOPS_POSTGRES_PASSWORD:?Set TRAVELOPS_POSTGRES_PASSWORD}@postgres:5432/${TRAVELOPS_POSTGRES_DB:-travelops}
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build:
+      context: .
+    environment:
+      TRAVELOPS_ENVIRONMENT: production
+      TRAVELOPS_LOG_LEVEL: INFO
+      TRAVELOPS_DATABASE_URL: postgresql+psycopg://travelops:${TRAVELOPS_POSTGRES_PASSWORD:?Set TRAVELOPS_POSTGRES_PASSWORD}@postgres:5432/${TRAVELOPS_POSTGRES_DB:-travelops}
+      TRAVELOPS_EVALUATION_REPORT_PATH: /app/reports/phase-11-evaluation.json
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  frontend:
+    build:
+      context: frontend
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  seed:
+    build:
+      context: .
+    profiles: ["tools"]
+    environment:
+      TRAVELOPS_ENVIRONMENT: production
+      TRAVELOPS_DATABASE_URL: postgresql+psycopg://travelops:${TRAVELOPS_POSTGRES_PASSWORD:?Set TRAVELOPS_POSTGRES_PASSWORD}@postgres:5432/${TRAVELOPS_POSTGRES_DB:-travelops}
+    command: ["python", "-m", "travelops_recovery_agent.persistence.cli", "seed", "--seed", "42"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
 volumes:
   postgres-data:

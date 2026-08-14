@@ -341,3 +341,61 @@ export interface WorkflowEvent {
   occurred_at: string;
   payload: Record<string, unknown>;
 }
+
+export interface EvaluationAggregate {
+  case_count: number;
+  passed_cases: number;
+  task_completion_rate: number;
+  outcome_accuracy: number;
+  correct_tool_selection_rate: number;
+  valid_tool_arguments_rate: number;
+  recommendation_validity_rate: number;
+  evidence_completeness_rate: number;
+  escalation_accuracy: number;
+  approval_integrity_rate: number;
+  booking_writes: number;
+  booking_writes_without_valid_approval: number;
+  duplicate_booking_writes: number;
+  unauthorized_execution_attempts: number;
+  blocked_hostile_requests: number;
+  total_retries: number;
+  latency_total_ms: number;
+  latency_p95_ms: number;
+  model_calls: number;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cost_usd: number | null;
+  usage_source: "measured" | "reported" | "estimated" | "not_available";
+}
+
+export interface EvaluationReport {
+  schema_version: string;
+  evaluation_id: string;
+  status: "passed" | "failed";
+  generated_at: string;
+  semantic_result_hash: string;
+  contract: {
+    system_version: string;
+    git_revision: string;
+    configuration: Record<string, string | number | boolean>;
+    prompt_version: string;
+    model_provider: string;
+    model_name: string;
+    dataset_version: string;
+    random_seed: number;
+    evaluation_type: "deterministic" | "live_model";
+    supported_claims: string[];
+    unsupported_claims: string[];
+  };
+  totals: EvaluationAggregate;
+  slices: Record<string, EvaluationAggregate>;
+  critical_gate_failures: string[];
+  cases: {
+    case_id: string;
+    slices: string[];
+    expected_outcome: string;
+    actual_outcome: string;
+    passed: boolean;
+    safe_diagnostics: string[];
+  }[];
+}

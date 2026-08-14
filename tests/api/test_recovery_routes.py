@@ -285,4 +285,5 @@ def test_openapi_publishes_read_only_recovery_and_phase_eight_workflow_routes() 
         "/api/v1/proposals/{proposal_id}/execute",
         "/api/v1/proposals/{proposal_id}/execution",
         "/api/v1/proposals/{proposal_id}/audit",
+        "/api/v1/evaluations/phase-11",
     }

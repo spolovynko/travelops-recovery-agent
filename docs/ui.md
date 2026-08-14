@@ -253,6 +253,21 @@ Approval should never be a generic “Continue” button. The operator approves 
 | 19 | Per-agent activity, handoff, ownership, and comparison view |
 | 20 | MCP capability and protocol-test diagnostics |
 
+### Phase 11 evaluation implementation
+
+`/evaluations` is the frozen baseline summary, not the Phase 17 trajectory
+comparison dashboard. It identifies the deterministic report, version, dataset,
+seed and timestamp; shows quality, approval/write safety, observed harness
+latency, model/token/cost accounting, slices, safe failed-case diagnostics and
+explicit unsupported claims. A missing report produces an actionable error
+screen rather than requiring server-log access. React escapes all report text;
+raw prompts, passenger details, credentials and trace payloads are never sent.
+
+The status is announced with `role="status"`, tables use headings and a labelled
+keyboard-scrollable region, focus remains visible, and critical zero-write
+metrics are named rather than conveyed by colour alone. The existing workflow
+SSE snapshot/cursor/reconnect behavior remains unchanged.
+
 ## UI definition of done
 
 - The main workflow can be completed without reading server logs.

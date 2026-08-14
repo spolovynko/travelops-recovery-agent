@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18.3-bookworm
+        env:
+          POSTGRES_USER: travelops
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: travelops_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U travelops -d travelops_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TRAVELOPS_ENVIRONMENT: test
+      TRAVELOPS_TEST_DATABASE_URL: postgresql+psycopg://travelops:ci-only-password@127.0.0.1:5432/travelops_test
+      TRAVELOPS_DATABASE_URL: postgresql+psycopg://travelops:ci-only-password@127.0.0.1:5432/travelops_test
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.11.6"
+          enable-cache: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: uv lock --check
+      - run: uv sync --locked --all-groups
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run alembic upgrade head
+      - run: uv run pytest --junitxml=reports/pytest.xml
+      - run: uv run python -m travelops_recovery_agent.evaluation.cli validate
+      - run: uv run python -m travelops_recovery_agent.evaluation.cli run --seed 42 --output-dir reports
+      - run: uv run python -m build --no-isolation
+      - if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: backend-evidence
+          path: |
+            reports/
+            dist/
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24.15.0"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - working-directory: frontend
+        run: npm ci
+      - working-directory: frontend
+        run: npm run format:check
+      - working-directory: frontend
+        run: npm run lint
+      - working-directory: frontend
+        run: npm run typecheck
+      - working-directory: frontend
+        run: npm test -- --run
+      - working-directory: frontend
+        run: npm run build
+      - working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - working-directory: frontend
+        run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: frontend-failure-artifacts
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+
+  containers:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v6
+      - run: mkdir -p reports && touch reports/phase-11-evaluation.json
+      - run: docker build -t travelops-backend .
+      - run: docker build -t travelops-frontend frontend
+      - run: TRAVELOPS_POSTGRES_PASSWORD=ci-only-password docker compose config --quiet

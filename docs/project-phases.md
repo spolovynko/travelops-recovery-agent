@@ -93,6 +93,8 @@ The [UI specification](ui.md) maps visible operator and developer-facing UI incr
 
 - Tests the complete system against service failures, malicious inputs, permission violations, and difficult disruption cases.
 - Produces reproducible quality, safety, latency, and cost evidence that makes the repository a credible portfolio release.
+- Complete: freezes dataset `phase-11.0.0`, critical approval/write gates,
+  privacy-safe trace schema, evaluation UI, Docker Compose stack, and CI evidence.
 
 ### Phase 12 — context engineering and tool governance
 

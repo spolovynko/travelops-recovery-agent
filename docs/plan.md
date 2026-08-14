@@ -336,6 +336,11 @@ No test path can execute without valid approval; repeated execution requests pro
 
 ## Phase 11 — break it, evaluate it, and release it
 
+**Status: complete.** The frozen contract is dataset `phase-11.0.0`, seed `42`,
+package `0.1.0`, and the thresholds below. Generated evidence lives under
+`reports/`; implementation and limitations are in
+[the Phase 11 notes](notes/phase-11.md).
+
 ### Ship
 
 - Failure injection for timeouts, malformed results, rate limits, lost seats, and restarts

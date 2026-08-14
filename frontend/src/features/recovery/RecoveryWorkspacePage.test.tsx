@@ -107,11 +107,17 @@ it("renders proposal approval controls separately from execution", async () => {
     "fetch",
     vi
       .fn()
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify(workspacePayload), { status: 200 }),
-      )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify(proposalPayload), { status: 200 }),
+      .mockImplementation((input: RequestInfo | URL) =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify(
+              String(input).includes("proposal")
+                ? proposalPayload
+                : workspacePayload,
+            ),
+            { status: 200 },
+          ),
+        ),
       ),
   );
   renderPage();

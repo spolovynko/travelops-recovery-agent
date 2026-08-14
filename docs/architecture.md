@@ -218,6 +218,29 @@ Phase 4 resolved the read-tool boundary questions in D-022 through D-024.
 Proposal and write tools remain future catalogue entries, not registered or
 implemented capabilities.
 
+## Phase 11 release and evidence path
+
+```mermaid
+flowchart LR
+    DATA["Frozen dataset phase-11.0.0"] --> VALIDATE["Schema and relationship validation"]
+    VALIDATE --> HARNESS["Deterministic evaluation harness"]
+    HARNESS --> SERVICES["Production safety contracts"]
+    SERVICES --> GATES{"Declared release gates"}
+    GATES -->|"pass"| REPORTS["JSON, Markdown, trace JSONL"]
+    GATES -->|"critical failure"| BLOCK["Exit 2; release blocked"]
+    REPORTS --> API["Read-only evaluation API"]
+    API --> UI["Operator evaluation summary"]
+    HARNESS --> TRACE["travelops.trace.v1 redaction"]
+```
+
+Failure injection is a test/development adapter outside the business model.
+Production settings reject it at validation time. The evaluator calls the same
+typed boundaries and observes safety counters; it has no alternate approval or
+execution route. Runtime JSON logs, durable workflow events, business audit,
+and evaluation traces share safe correlation references without copying raw
+passenger text, prompts, credentials, authorization headers, or idempotency
+keys.
+
 ## Advanced evolution
 
 The Phase 11 architecture remains the baseline. [The advanced roadmap](roadmap.md) evolves it through controlled additions:

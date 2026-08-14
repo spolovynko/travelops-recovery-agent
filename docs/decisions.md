@@ -962,6 +962,57 @@ workflow-derived execution idempotency key.
 **Consequences:** Browser or backend restarts cannot invent approval or repeat a
 successful effect.
 
+## D-057 — Freeze a small deterministic Phase 11 benchmark
+
+**Status:** Accepted
+
+**Decision:** Version the reviewed dataset as `phase-11.0.0`, use seed 42, and
+make deterministic results the CI baseline. Keep live-model results separate.
+
+**Consequences:** CI is credential-free and reproducible, while claims remain
+limited to the declared synthetic cases.
+
+## D-058 — Make approval/write counters critical release gates
+
+**Status:** Accepted
+
+**Decision:** Exit non-zero for any unapproved, duplicate, or unauthorized
+booking execution attempt and seed test-only defects to prove those gates fire.
+
+**Consequences:** A quality average can never hide a consequential safety error.
+
+## D-059 — Permit retries at one owning layer only
+
+**Status:** Accepted
+
+**Decision:** Classify errors centrally, bound attempts/backoff, stop
+non-retryable errors immediately, and prohibit write retries without an explicit
+idempotency proof.
+
+**Consequences:** Transient reads can recover without nested retry storms or
+accidental repeated writes.
+
+## D-060 — Keep tracing dependency-free for the baseline
+
+**Status:** Accepted
+
+**Decision:** Add `travelops.trace.v1`, JSONL export, correlation fields, and
+recursive redaction using the existing standard-library/Pydantic stack.
+
+**Consequences:** The measured local need is met without a telemetry backend;
+production collection, retention, access control, and alerting remain explicit
+gaps.
+
+## D-061 — Reject failure injection in production configuration
+
+**Status:** Accepted
+
+**Decision:** Require an explicit test/development flag and make Settings
+validation fail if failure injection is enabled with the production environment.
+
+**Consequences:** Fault controls are reproducible in tests and cannot be enabled
+accidentally in a valid production configuration.
+
 ## Decision template
 
 ```markdown

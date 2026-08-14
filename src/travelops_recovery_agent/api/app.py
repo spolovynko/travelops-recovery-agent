@@ -8,6 +8,7 @@ from functools import partial
 from fastapi import FastAPI
 from sqlalchemy import Engine
 
+from travelops_recovery_agent.api.evaluation_routes import create_evaluation_router
 from travelops_recovery_agent.api.middleware import RequestIdMiddleware
 from travelops_recovery_agent.api.proposal_routes import (
     create_proposal_router,
@@ -107,6 +108,7 @@ def create_app(
     app = FastAPI(title="TravelOps Recovery Agent", lifespan=lifespan)
     app.state.settings = resolved_settings
     app.add_middleware(RequestIdMiddleware)
+    app.include_router(create_evaluation_router())
     app.include_router(create_recovery_router())
     app.include_router(create_workflow_router())
     app.include_router(create_proposal_router())

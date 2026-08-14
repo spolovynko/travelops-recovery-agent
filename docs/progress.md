@@ -2,10 +2,23 @@
 
 ## Current state
 
-- **Current phase:** Phase 10 — proposal, approval, and safe execution
+- **Current phase:** Phase 11 — failure testing, evaluation, and first release
 - **Status:** Complete
-- **Last completed result:** Only an explicitly approved exact proposal can pass fresh revalidation and create one synthetic booking change with immutable audit
-- **Next gate:** Review Phase 10 evidence; begin Phase 11 only when explicitly requested
+- **Last completed result:** Frozen `phase-11.0.0` benchmark, privacy-safe tracing, deterministic failure/recovery controls, evaluation UI, complete Compose stack, and credential-free CI baseline
+- **Next gate:** Preserve this baseline; begin Phase 12 only when explicitly requested
+
+## Concepts confirmed in Phase 11
+
+- Component checks versus end-to-end outcome evaluation
+- Deterministic CI evidence versus separate optional live-model evaluation
+- Reviewed dataset contracts, slices, thresholds, claims, and uncertainty
+- Test-only failure injection with a production configuration prohibition
+- Error classification, one-layer bounded retries, and retry-storm prevention
+- Indirect prompt injection and untrusted tool-output boundaries
+- Exact approval, fresh revalidation, and zero-bypass safety gates
+- Stable trace schemas, correlation, redaction, and cost-source metadata
+- Container startup ordering, health checks, migration jobs, and CI artifacts
+- Why a frozen baseline is necessary before advanced experiments
 
 ## Concepts confirmed in Phase 0
 

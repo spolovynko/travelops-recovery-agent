@@ -295,21 +295,34 @@ function Workspace({ data }: { data: RecoveryCaseWorkspace }) {
 
 function ProposalPanel({ caseId }: { caseId: string }) {
   const [proposal, setProposal] = useState<ProposalWithAudit | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const proposalId = searchParams.get("proposal");
+  const existing = useQuery({
+    queryKey: ["proposal", proposalId],
+    queryFn: () => recoveryApi.getProposal(proposalId ?? ""),
+    enabled: proposalId !== null && proposal === null,
+  });
+  const loadedProposal = proposal ?? existing.data ?? null;
   const create = useMutation({
     mutationFn: () => recoveryApi.createProposal(caseId),
-    onSuccess: setProposal,
+    onSuccess: (value) => {
+      setProposal(value);
+      const next = new URLSearchParams(searchParams);
+      next.set("proposal", value.proposal.proposal_id);
+      setSearchParams(next, { replace: true });
+    },
   });
   const decide = useMutation({
     mutationFn: (input: {
       decision: "approve" | "reject";
       reason?: string;
     }) => {
-      if (!proposal) throw new Error("No proposal is loaded.");
+      if (!loadedProposal) throw new Error("No proposal is loaded.");
       return recoveryApi.decideProposal(
-        proposal.proposal.proposal_id,
+        loadedProposal.proposal.proposal_id,
         {
-          version: proposal.proposal.version,
-          itinerary_fingerprint: proposal.proposal.itinerary_fingerprint,
+          version: loadedProposal.proposal.version,
+          itinerary_fingerprint: loadedProposal.proposal.itinerary_fingerprint,
           reason: input.reason,
         },
         input.decision,
@@ -319,17 +332,20 @@ function ProposalPanel({ caseId }: { caseId: string }) {
   });
   const execute = useMutation({
     mutationFn: () => {
-      if (!proposal) throw new Error("No proposal is loaded.");
+      if (!loadedProposal) throw new Error("No proposal is loaded.");
       return recoveryApi.executeProposal(
-        proposal.proposal.proposal_id,
-        `ui-${proposal.proposal.proposal_id}-v${proposal.proposal.version}`,
+        loadedProposal.proposal.proposal_id,
+        `ui-${loadedProposal.proposal.proposal_id}-v${loadedProposal.proposal.version}`,
       );
     },
     onSuccess: setProposal,
   });
-  const error = create.error ?? decide.error ?? execute.error;
+  const error = existing.error ?? create.error ?? decide.error ?? execute.error;
 
-  if (!proposal)
+  if (loadedProposal === null && proposalId !== null && existing.isPending)
+    return <LoadingState label="Restoring proposal status" />;
+
+  if (!loadedProposal)
     return (
       <section className="proposal-panel" aria-label="Recovery proposal">
         <p className="eyebrow">Proposal</p>
@@ -349,7 +365,7 @@ function ProposalPanel({ caseId }: { caseId: string }) {
       </section>
     );
 
-  const value = proposal.proposal;
+  const value = loadedProposal.proposal;
   const awaiting = value.status === "awaiting_approval";
   return (
     <section
@@ -446,10 +462,10 @@ function ProposalPanel({ caseId }: { caseId: string }) {
       )}
       <details open className="ranking-method">
         <summary>
-          Immutable audit history ({proposal.audit_history.length})
+          Immutable audit history ({loadedProposal.audit_history.length})
         </summary>
         <ol>
-          {proposal.audit_history.map((item) => (
+          {loadedProposal.audit_history.map((item) => (
             <li key={item.audit_id}>
               <strong>{label(item.event_type)}</strong> · {item.actor_id} ·{" "}
               {exactDate(item.occurred_at)}

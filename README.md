@@ -352,14 +352,64 @@ Open `/cases/CASE-0002` for a deterministic replacement example. The demo UI
 uses explicit synthetic actor headers; they illustrate authorization context,
 not production authentication.
 
+## Phase 11 first-release baseline
+
+Version `0.1.0` freezes dataset `phase-11.0.0` with seed `42`. The deterministic
+benchmark contains 22 synthetic cases across routine, complex,
+failure-recovery, safety, authorization, and adversarial slices. It declares its
+thresholds before running, emits JSON/Markdown/JSONL artifacts, and exits
+non-zero when a critical safety gate fails.
+
+```powershell
+uv sync --locked --all-groups
+uv run --locked python -m travelops_recovery_agent.evaluation.cli validate
+uv run --locked python -m travelops_recovery_agent.evaluation.cli run `
+  --seed 42 --output-dir reports
+```
+
+The frozen deterministic run completed 22/22 cases with 100% task completion,
+outcome accuracy, valid tool arguments, escalation accuracy, and approval
+integrity. It recorded seven approved synthetic writes, zero writes without
+valid approval, zero duplicate writes, zero unauthorized execution attempts,
+and seven blocked hostile requests. It made zero model calls, so measured token
+usage and cost are zero for this run; that does not claim anything about an
+optional live model. Harness latency is machine-dependent and is recorded in
+[the generated report](reports/phase-11-evaluation.md).
+
+The benchmark demonstrates the declared deterministic synthetic cases and
+safety counters only. It does not demonstrate real-airline correctness,
+production scale, live-model semantic quality, or statistical generalization.
+See [the Phase 11 notes](docs/notes/phase-11.md) and
+[release notes](docs/release-notes/v0.1.0.md).
+
+## Complete local stack
+
+Set a strong alphanumeric database password outside committed files, then start
+PostgreSQL, one-shot migrations, FastAPI, and the React/nginx frontend with
+health-checked ordering:
+
+```powershell
+$env:TRAVELOPS_POSTGRES_PASSWORD = "choose-a-strong-local-password"
+docker compose up --build -d
+docker compose --profile tools run --rm seed
+docker compose ps
+```
+
+Open `http://127.0.0.1:8080`. The short demo path is: Cases → `CASE-0002` →
+prepare proposal → approve the exact version → execute → inspect immutable audit
+→ Evaluation. Stop with `docker compose down`; add `--volumes` only when you
+explicitly intend to delete the local database.
+
+The demo uses explicit actor headers, synthetic data, and a synthetic execution
+provider. Production still requires authenticated tenant-scoped identities,
+real-provider idempotency and reconciliation, inventory holds, managed secrets,
+TLS/network policy, backups, durable distributed workers, load/chaos testing,
+security review, governed telemetry, alerting, and incident response.
+
 ## Current status
 
-Phase 10 turns a validated recommendation into a versioned, expiring proposal;
-requires an attributable exact-itinerary human decision; reruns all safety rules
-inside the execution transaction; and records one synthetic booking change with
-database-backed idempotency, concurrency protection, and an immutable audit.
-The durable workflow pauses at approval and resumes only from the stored
-decision. No real airline or reservation system is contacted.
-
-See [the Phase 10 learning notes](docs/notes/phase-10.md) for lifecycle,
-revalidation, transaction, replay, workflow, audit, and production limitations.
+Phase 11 is complete and preserved as the comparison baseline for Phases 12–20.
+The original itinerary and immutable audit remain intact; exact human approval,
+fresh transactional revalidation, database idempotency, concurrency protection,
+and all Phase 6–10 equivalence behavior remain release invariants. No real
+airline or reservation system is contacted.

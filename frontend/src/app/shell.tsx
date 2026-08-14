@@ -16,8 +16,14 @@ export function AppShell() {
             <small>Recovery console</small>
           </span>
         </Link>
-        <div className="environment">
-          <span aria-hidden="true">●</span> Synthetic operations
+        <div className="topbar-actions">
+          <nav aria-label="Primary navigation">
+            <Link to="/cases">Cases</Link>
+            <Link to="/evaluations">Evaluation</Link>
+          </nav>
+          <div className="environment">
+            <span aria-hidden="true">●</span> Synthetic operations
+          </div>
         </div>
       </header>
       <main id="main-content">

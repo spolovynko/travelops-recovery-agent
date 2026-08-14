@@ -1,8 +1,9 @@
 """Validated application configuration."""
 
 from enum import StrEnum
+from pathlib import Path
 
-from pydantic import PositiveInt, SecretStr
+from pydantic import PositiveInt, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -34,3 +35,15 @@ class Settings(BaseSettings):
     workflow_event_retention_hours: PositiveInt = 168
     workflow_event_batch_size: PositiveInt = 100
     workflow_sse_heartbeat_seconds: PositiveInt = 10
+    failure_injection_enabled: bool = False
+    failure_injection_seed: int = 42
+    evaluation_report_path: Path = Path("reports/phase-11-evaluation.json")
+
+    @model_validator(mode="after")
+    def reject_production_failure_injection(self) -> "Settings":
+        if (
+            self.environment is Environment.PRODUCTION
+            and self.failure_injection_enabled
+        ):
+            raise ValueError("failure injection cannot be enabled in production")
+        return self

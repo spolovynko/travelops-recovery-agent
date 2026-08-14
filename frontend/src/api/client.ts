@@ -1,6 +1,7 @@
 import type {
   AlternativeSearchResult,
   ApiErrorPayload,
+  EvaluationReport,
   ItineraryValidation,
   RecoveryCaseQueue,
   RecoveryCaseWorkspace,
@@ -59,6 +60,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const recoveryApi = {
+  getPhase11Evaluation: () =>
+    request<EvaluationReport>("/api/v1/evaluations/phase-11"),
   listCases: () => request<RecoveryCaseQueue>("/api/v1/recovery-cases"),
   getCase: (caseId: string) =>
     request<RecoveryCaseWorkspace>(

@@ -99,6 +99,18 @@ a {
   color: #72d2a9;
   margin-right: 0.35rem;
 }
+.topbar-actions,
+.topbar-actions nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.topbar-actions nav a {
+  color: #e9f3f0;
+  font-size: 0.82rem;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3rem;
+}
 .page {
   width: min(1440px, 100%);
   margin: auto;
@@ -987,6 +999,92 @@ code {
   color: var(--muted);
   font-size: 0.78rem;
 }
+.evaluation-content {
+  display: grid;
+  gap: 1.5rem;
+}
+.evaluation-content > section,
+.evaluation-content > aside {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+.evaluation-content h2 {
+  margin: 0 0 1rem;
+  font:
+    500 1.35rem Georgia,
+    serif;
+}
+.evaluation-banner {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) 2fr;
+  gap: 2rem;
+  border-left: 6px solid var(--green) !important;
+}
+.evaluation-banner.failed {
+  border-left-color: var(--red) !important;
+}
+.evaluation-banner dl {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin: 0;
+}
+.evaluation-banner dt,
+.metric span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.evaluation-banner dd {
+  margin: 0.25rem 0 0;
+  overflow-wrap: anywhere;
+}
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(10rem, 1fr));
+  gap: 0.75rem;
+}
+.metric {
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+.metric strong {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 1.35rem;
+}
+.metric.critical strong,
+.no-failures {
+  color: var(--green);
+}
+.slice-table {
+  overflow-x: auto;
+}
+.slice-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.slice-table th,
+.slice-table td {
+  padding: 0.7rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.slice-table thead th {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.no-failures {
+  font-weight: 700;
+}
+.limitations {
+  color: var(--muted);
+}
 @media (max-width: 1100px) {
   .case-card {
     grid-template-columns: 1fr 1.5fr;
@@ -1002,6 +1100,9 @@ code {
   }
   .activity {
     grid-column: 1/-1;
+  }
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(10rem, 1fr));
   }
 }
 @media (max-width: 720px) {
@@ -1067,6 +1168,13 @@ code {
   }
   .recommendation-option ol li {
     grid-template-columns: 1fr;
+  }
+  .evaluation-banner {
+    grid-template-columns: 1fr;
+  }
+  .evaluation-banner dl,
+  .metric-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 @media (prefers-reduced-motion: reduce) {

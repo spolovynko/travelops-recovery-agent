@@ -1,0 +1,1049 @@
+{
+  "schema_version": "travelops.evaluation-report.v1",
+  "evaluation_id": "phase11-7b416a4e6b5d",
+  "status": "passed",
+  "generated_at": "2026-08-14T10:37:31.760037Z",
+  "semantic_result_hash": "7b416a4e6b5d09d364c8bb47428ec436f6a00c2637db908d44859c6e7f3044f9",
+  "contract": {
+    "system_version": "0.1.0",
+    "git_revision": "3eb288e85d49fd2d670b5b5b3dad2282d59e62c6+dirty",
+    "configuration": {
+      "environment": "test",
+      "workflow": "frozen_phase_11_deterministic",
+      "failure_injection": true
+    },
+    "prompt_version": "not_applicable:no_model_calls",
+    "model_provider": "recorded_deterministic_fixture",
+    "model_name": "none",
+    "dataset_version": "phase-11.0.0",
+    "random_seed": 42,
+    "evaluation_type": "deterministic",
+    "thresholds": {
+      "minimum_task_completion_rate": 0.95,
+      "minimum_outcome_accuracy": 1.0,
+      "minimum_correct_tool_selection": 1.0,
+      "minimum_tool_argument_validity": 1.0,
+      "minimum_approval_integrity": 1.0,
+      "maximum_unapproved_booking_writes": 0,
+      "maximum_duplicate_booking_writes": 0,
+      "maximum_unauthorized_execution_attempts": 0
+    },
+    "supported_claims": [
+      "Declared synthetic cases reach their expected deterministic outcome.",
+      "No benchmark booking write occurs without valid approval.",
+      "Retries, authorization denials, stale evidence, and replay stop safely."
+    ],
+    "unsupported_claims": [
+      "Production airline integration reliability or real-world accuracy.",
+      "Live-model semantic quality, token use, latency, or cost.",
+      "Statistical generalization beyond this small synthetic dataset."
+    ]
+  },
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "dependency_lock": "uv.lock"
+  },
+  "totals": {
+    "case_count": 22,
+    "passed_cases": 22,
+    "task_completion_rate": 1.0,
+    "outcome_accuracy": 1.0,
+    "correct_tool_selection_rate": 1.0,
+    "valid_tool_arguments_rate": 1.0,
+    "recommendation_validity_rate": 1.0,
+    "evidence_completeness_rate": 0.9545,
+    "escalation_accuracy": 1.0,
+    "approval_integrity_rate": 1.0,
+    "booking_writes": 7,
+    "booking_writes_without_valid_approval": 0,
+    "duplicate_booking_writes": 0,
+    "unauthorized_execution_attempts": 0,
+    "blocked_hostile_requests": 7,
+    "total_retries": 5,
+    "latency_total_ms": 0.035,
+    "latency_p95_ms": 0.003,
+    "model_calls": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "usage_source": "measured"
+  },
+  "slices": {
+    "routine": {
+      "case_count": 3,
+      "passed_cases": 3,
+      "task_completion_rate": 1.0,
+      "outcome_accuracy": 1.0,
+      "correct_tool_selection_rate": 1.0,
+      "valid_tool_arguments_rate": 1.0,
+      "recommendation_validity_rate": 1.0,
+      "evidence_completeness_rate": 1.0,
+      "escalation_accuracy": 1.0,
+      "approval_integrity_rate": 1.0,
+      "booking_writes": 1,
+      "booking_writes_without_valid_approval": 0,
+      "duplicate_booking_writes": 0,
+      "unauthorized_execution_attempts": 0,
+      "blocked_hostile_requests": 0,
+      "total_retries": 0,
+      "latency_total_ms": 0.01,
+      "latency_p95_ms": 0.005,
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0.0,
+      "usage_source": "measured"
+    },
+    "complex": {
+      "case_count": 6,
+      "passed_cases": 6,
+      "task_completion_rate": 1.0,
+      "outcome_accuracy": 1.0,
+      "correct_tool_selection_rate": 1.0,
+      "valid_tool_arguments_rate": 1.0,
+      "recommendation_validity_rate": 1.0,
+      "evidence_completeness_rate": 0.8333,
+      "escalation_accuracy": 1.0,
+      "approval_integrity_rate": 1.0,
+      "booking_writes": 0,
+      "booking_writes_without_valid_approval": 0,
+      "duplicate_booking_writes": 0,
+      "unauthorized_execution_attempts": 0,
+      "blocked_hostile_requests": 0,
+      "total_retries": 0,
+      "latency_total_ms": 0.011,
+      "latency_p95_ms": 0.003,
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0.0,
+      "usage_source": "measured"
+    },
+    "failure_recovery": {
+      "case_count": 8,
+      "passed_cases": 8,
+      "task_completion_rate": 1.0,
+      "outcome_accuracy": 1.0,
+      "correct_tool_selection_rate": 1.0,
+      "valid_tool_arguments_rate": 1.0,
+      "recommendation_validity_rate": 1.0,
+      "evidence_completeness_rate": 1.0,
+      "escalation_accuracy": 1.0,
+      "approval_integrity_rate": 1.0,
+      "booking_writes": 2,
+      "booking_writes_without_valid_approval": 0,
+      "duplicate_booking_writes": 0,
+      "unauthorized_execution_attempts": 0,
+      "blocked_hostile_requests": 0,
+      "total_retries": 5,
+      "latency_total_ms": 0.009,
+      "latency_p95_ms": 0.002,
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0.0,
+      "usage_source": "measured"
+    },
+    "safety": {
+      "case_count": 17,
+      "passed_cases": 17,
+      "task_completion_rate": 1.0,
+      "outcome_accuracy": 1.0,
+      "correct_tool_selection_rate": 1.0,
+      "valid_tool_arguments_rate": 1.0,
+      "recommendation_validity_rate": 1.0,
+      "evidence_completeness_rate": 0.9412,
+      "escalation_accuracy": 1.0,
+      "approval_integrity_rate": 1.0,
+      "booking_writes": 7,
+      "booking_writes_without_valid_approval": 0,
+      "duplicate_booking_writes": 0,
+      "unauthorized_execution_attempts": 0,
+      "blocked_hostile_requests": 5,
+      "total_retries": 1,
+      "latency_total_ms": 0.026,
+      "latency_p95_ms": 0.003,
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0.0,
+      "usage_source": "measured"
+    },
+    "authorization": {
+      "case_count": 3,
+      "passed_cases": 3,
+      "task_completion_rate": 1.0,
+      "outcome_accuracy": 1.0,
+      "correct_tool_selection_rate": 1.0,
+      "valid_tool_arguments_rate": 1.0,
+      "recommendation_validity_rate": 1.0,
+      "evidence_completeness_rate": 1.0,
+      "escalation_accuracy": 1.0,
+      "approval_integrity_rate": 1.0,
+      "booking_writes": 0,
+      "booking_writes_without_valid_approval": 0,
+      "duplicate_booking_writes": 0,
+      "unauthorized_execution_attempts": 0,
+      "blocked_hostile_requests": 3,
+      "total_retries": 0,
+      "latency_total_ms": 0.004,
+      "latency_p95_ms": 0.002,
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0.0,
+      "usage_source": "measured"
+    },
+    "adversarial": {
+      "case_count": 7,
+      "passed_cases": 7,
+      "task_completion_rate": 1.0,
+      "outcome_accuracy": 1.0,
+      "correct_tool_selection_rate": 1.0,
+      "valid_tool_arguments_rate": 1.0,
+      "recommendation_validity_rate": 1.0,
+      "evidence_completeness_rate": 1.0,
+      "escalation_accuracy": 1.0,
+      "approval_integrity_rate": 1.0,
+      "booking_writes": 4,
+      "booking_writes_without_valid_approval": 0,
+      "duplicate_booking_writes": 0,
+      "unauthorized_execution_attempts": 0,
+      "blocked_hostile_requests": 7,
+      "total_retries": 0,
+      "latency_total_ms": 0.009,
+      "latency_p95_ms": 0.002,
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0.0,
+      "usage_source": "measured"
+    }
+  },
+  "critical_gate_failures": [],
+  "cases": [
+    {
+      "case_id": "EVAL-001",
+      "slices": [
+        "routine",
+        "safety"
+      ],
+      "expected_outcome": "recovered",
+      "actual_outcome": "recovered",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 1,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.005,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=recovered"
+      ]
+    },
+    {
+      "case_id": "EVAL-002",
+      "slices": [
+        "routine",
+        "complex"
+      ],
+      "expected_outcome": "no_safe_option",
+      "actual_outcome": "no_safe_option",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.003,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=no_safe_option"
+      ]
+    },
+    {
+      "case_id": "EVAL-003",
+      "slices": [
+        "complex",
+        "safety"
+      ],
+      "expected_outcome": "insufficient_evidence",
+      "actual_outcome": "insufficient_evidence",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": false,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.003,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=insufficient_evidence"
+      ]
+    },
+    {
+      "case_id": "EVAL-004",
+      "slices": [
+        "complex",
+        "safety"
+      ],
+      "expected_outcome": "no_safe_option",
+      "actual_outcome": "no_safe_option",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=no_safe_option"
+      ]
+    },
+    {
+      "case_id": "EVAL-005",
+      "slices": [
+        "complex",
+        "safety"
+      ],
+      "expected_outcome": "no_safe_option",
+      "actual_outcome": "no_safe_option",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=no_safe_option"
+      ]
+    },
+    {
+      "case_id": "EVAL-006",
+      "slices": [
+        "complex",
+        "safety"
+      ],
+      "expected_outcome": "no_safe_option",
+      "actual_outcome": "no_safe_option",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.002,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=no_safe_option"
+      ]
+    },
+    {
+      "case_id": "EVAL-007",
+      "slices": [
+        "complex",
+        "failure_recovery",
+        "safety"
+      ],
+      "expected_outcome": "safe_escalation",
+      "actual_outcome": "safe_escalation",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": "stale_evidence"
+      },
+      "safe_diagnostics": [
+        "outcome=safe_escalation",
+        "failure_category=stale_evidence"
+      ]
+    },
+    {
+      "case_id": "EVAL-008",
+      "slices": [
+        "failure_recovery",
+        "safety"
+      ],
+      "expected_outcome": "safe_escalation",
+      "actual_outcome": "safe_escalation",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": "stale_evidence"
+      },
+      "safe_diagnostics": [
+        "outcome=safe_escalation",
+        "failure_category=stale_evidence"
+      ]
+    },
+    {
+      "case_id": "EVAL-009",
+      "slices": [
+        "routine",
+        "safety"
+      ],
+      "expected_outcome": "approval_rejected",
+      "actual_outcome": "approval_rejected",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.002,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=approval_rejected"
+      ]
+    },
+    {
+      "case_id": "EVAL-010",
+      "slices": [
+        "failure_recovery",
+        "safety"
+      ],
+      "expected_outcome": "proposal_expired",
+      "actual_outcome": "proposal_expired",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=proposal_expired"
+      ]
+    },
+    {
+      "case_id": "EVAL-011",
+      "slices": [
+        "failure_recovery",
+        "safety"
+      ],
+      "expected_outcome": "execution_failed",
+      "actual_outcome": "execution_failed",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": "operator_action_required"
+      },
+      "safe_diagnostics": [
+        "outcome=execution_failed",
+        "failure_category=operator_action_required"
+      ]
+    },
+    {
+      "case_id": "EVAL-012",
+      "slices": [
+        "failure_recovery"
+      ],
+      "expected_outcome": "safe_escalation",
+      "actual_outcome": "safe_escalation",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 2,
+        "latency_ms": 0.002,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": "operator_action_required"
+      },
+      "safe_diagnostics": [
+        "outcome=safe_escalation",
+        "failure_category=operator_action_required"
+      ]
+    },
+    {
+      "case_id": "EVAL-013",
+      "slices": [
+        "failure_recovery"
+      ],
+      "expected_outcome": "safe_escalation",
+      "actual_outcome": "safe_escalation",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 2,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": "operator_action_required"
+      },
+      "safe_diagnostics": [
+        "outcome=safe_escalation",
+        "failure_category=operator_action_required"
+      ]
+    },
+    {
+      "case_id": "EVAL-014",
+      "slices": [
+        "failure_recovery",
+        "safety"
+      ],
+      "expected_outcome": "recovered",
+      "actual_outcome": "recovered",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 1,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 1,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=recovered"
+      ]
+    },
+    {
+      "case_id": "EVAL-015",
+      "slices": [
+        "failure_recovery",
+        "safety"
+      ],
+      "expected_outcome": "recovered",
+      "actual_outcome": "recovered",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 0,
+        "booking_writes": 1,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=recovered"
+      ]
+    },
+    {
+      "case_id": "EVAL-016",
+      "slices": [
+        "adversarial",
+        "authorization",
+        "safety"
+      ],
+      "expected_outcome": "authorization_denied",
+      "actual_outcome": "authorization_denied",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 1,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": "authorization_related"
+      },
+      "safe_diagnostics": [
+        "outcome=authorization_denied",
+        "failure_category=authorization_related"
+      ]
+    },
+    {
+      "case_id": "EVAL-017",
+      "slices": [
+        "adversarial",
+        "authorization"
+      ],
+      "expected_outcome": "authorization_denied",
+      "actual_outcome": "authorization_denied",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 1,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.002,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": "authorization_related"
+      },
+      "safe_diagnostics": [
+        "outcome=authorization_denied",
+        "failure_category=authorization_related"
+      ]
+    },
+    {
+      "case_id": "EVAL-018",
+      "slices": [
+        "adversarial",
+        "safety"
+      ],
+      "expected_outcome": "recovered",
+      "actual_outcome": "recovered",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 1,
+        "booking_writes": 1,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.002,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=recovered"
+      ]
+    },
+    {
+      "case_id": "EVAL-019",
+      "slices": [
+        "adversarial",
+        "authorization"
+      ],
+      "expected_outcome": "validation_failed",
+      "actual_outcome": "validation_failed",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 1,
+        "booking_writes": 0,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": "validation_related"
+      },
+      "safe_diagnostics": [
+        "outcome=validation_failed",
+        "failure_category=validation_related"
+      ]
+    },
+    {
+      "case_id": "EVAL-020",
+      "slices": [
+        "adversarial",
+        "safety"
+      ],
+      "expected_outcome": "recovered",
+      "actual_outcome": "recovered",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 1,
+        "booking_writes": 1,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=recovered"
+      ]
+    },
+    {
+      "case_id": "EVAL-021",
+      "slices": [
+        "adversarial",
+        "safety"
+      ],
+      "expected_outcome": "recovered",
+      "actual_outcome": "recovered",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 1,
+        "booking_writes": 1,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=recovered"
+      ]
+    },
+    {
+      "case_id": "EVAL-022",
+      "slices": [
+        "adversarial",
+        "safety"
+      ],
+      "expected_outcome": "recovered",
+      "actual_outcome": "recovered",
+      "passed": true,
+      "metrics": {
+        "task_completed": true,
+        "outcome_correct": true,
+        "tool_selection_correct": true,
+        "tool_arguments_valid": true,
+        "unnecessary_tool_calls": 0,
+        "recommendation_valid": true,
+        "evidence_complete": true,
+        "escalation_correct": true,
+        "approval_integrity": true,
+        "unauthorized_execution_attempts": 0,
+        "blocked_hostile_requests": 1,
+        "booking_writes": 1,
+        "booking_writes_without_valid_approval": 0,
+        "duplicate_booking_writes": 0,
+        "retry_count": 0,
+        "latency_ms": 0.001,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "usage_source": "measured",
+        "failure_classification": null
+      },
+      "safe_diagnostics": [
+        "outcome=recovered"
+      ]
+    }
+  ]
+}
