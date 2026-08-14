@@ -5,6 +5,7 @@ import type {
   RecoveryCaseQueue,
   RecoveryCaseWorkspace,
   RecommendationResult,
+  ProposalWithAudit,
   WorkflowRun,
 } from "./models";
 
@@ -66,6 +67,48 @@ export const recoveryApi = {
   getRecommendation: (caseId: string) =>
     request<RecommendationResult>(
       `/api/v1/recovery-cases/${encodeURIComponent(caseId)}/recommendation`,
+    ),
+  createProposal: (caseId: string) =>
+    request<ProposalWithAudit>(
+      `/api/v1/recovery-cases/${encodeURIComponent(caseId)}/proposal`,
+      {
+        method: "POST",
+        headers: { "X-Actor-ID": "proposal-preparer" },
+        body: JSON.stringify({ workflow_run_id: null }),
+      },
+    ),
+  getProposal: (proposalId: string) =>
+    request<ProposalWithAudit>(
+      `/api/v1/proposals/${encodeURIComponent(proposalId)}`,
+      { headers: { "X-Actor-ID": "recovery-operator" } },
+    ),
+  decideProposal: (
+    proposalId: string,
+    input: { version: number; itinerary_fingerprint: string; reason?: string },
+    decision: "approve" | "reject",
+  ) =>
+    request<ProposalWithAudit>(
+      `/api/v1/proposals/${encodeURIComponent(proposalId)}/${decision}`,
+      {
+        method: "POST",
+        headers: {
+          "X-Actor-ID": "recovery-operator",
+          "X-Actor-Role": "recovery_operator",
+        },
+        body: JSON.stringify(input),
+      },
+    ),
+  executeProposal: (proposalId: string, idempotencyKey: string) =>
+    request<ProposalWithAudit>(
+      `/api/v1/proposals/${encodeURIComponent(proposalId)}/execute`,
+      {
+        method: "POST",
+        headers: {
+          "X-Actor-ID": "recovery-operator",
+          "X-Actor-Role": "recovery_operator",
+        },
+        body: JSON.stringify({ idempotency_key: idempotencyKey }),
+      },
     ),
   search: (input: {
     case_id: string;

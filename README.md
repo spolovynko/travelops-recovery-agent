@@ -327,10 +327,39 @@ See [the Phase 9 learning notes](docs/notes/phase-9.md) for the
 candidate/validation/recommendation split, traceability, ranking, missing
 evidence, durable resume behavior, and Phase 10 boundary.
 
+## Phase 10 approved synthetic rebooking
+
+After Alembic `0004`, the case workspace can prepare an expiring proposal from
+the validated recommendation. Approval binds to its exact version and itinerary.
+Execution then locks and revalidates the evidence, applies one provider-neutral
+synthetic booking change, and writes an immutable audit.
+
+```powershell
+# With TRAVELOPS_DATABASE_URL configured as in the PostgreSQL section
+docker compose up -d postgres
+uv run --locked alembic upgrade head
+uv run --locked python -m travelops_recovery_agent.persistence.cli seed --seed 42
+uv run --locked uvicorn travelops_recovery_agent.api.app:create_app `
+  --factory --host 127.0.0.1 --port 8000
+
+# In another terminal
+Set-Location frontend
+npm.cmd ci
+npm.cmd run dev
+```
+
+Open `/cases/CASE-0002` for a deterministic replacement example. The demo UI
+uses explicit synthetic actor headers; they illustrate authorization context,
+not production authentication.
+
 ## Current status
 
-Phase 9 recommends only itineraries that pass every deterministic rule, shows
-their evidence and tradeoffs, and escalates no-safe-option or missing-evidence
-cases. The result is stored in the durable read-only workflow without changing
-the Phase 6–8 equivalence path. Proposal preparation, approval, inventory
-recheck, idempotent booking writes, and audit records remain Phase 10.
+Phase 10 turns a validated recommendation into a versioned, expiring proposal;
+requires an attributable exact-itinerary human decision; reruns all safety rules
+inside the execution transaction; and records one synthetic booking change with
+database-backed idempotency, concurrency protection, and an immutable audit.
+The durable workflow pauses at approval and resumes only from the stored
+decision. No real airline or reservation system is contacted.
+
+See [the Phase 10 learning notes](docs/notes/phase-10.md) for lifecycle,
+revalidation, transaction, replay, workflow, audit, and production limitations.

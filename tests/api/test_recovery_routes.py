@@ -278,4 +278,11 @@ def test_openapi_publishes_read_only_recovery_and_phase_eight_workflow_routes() 
         "/api/v1/workflow-runs/{run_id}/events",
         "/api/v1/workflow-runs/{run_id}/cancel",
         "/api/v1/workflow-runs/{run_id}/resume",
+        "/api/v1/recovery-cases/{case_id}/proposal",
+        "/api/v1/proposals/{proposal_id}",
+        "/api/v1/proposals/{proposal_id}/approve",
+        "/api/v1/proposals/{proposal_id}/reject",
+        "/api/v1/proposals/{proposal_id}/execute",
+        "/api/v1/proposals/{proposal_id}/execution",
+        "/api/v1/proposals/{proposal_id}/audit",
     }

@@ -24,6 +24,11 @@ EXPECTED_BUSINESS_TABLES = {
     "recovery_cases",
     "flight_availability_evidence",
     "ticket_rule_evidence",
+    "rebooking_proposals",
+    "proposal_approvals",
+    "execution_attempts",
+    "booking_changes",
+    "proposal_audit_records",
 }
 
 EXPECTED_WORKFLOW_TABLES = {
@@ -63,7 +68,7 @@ def test_alembic_builds_the_business_schema_from_zero(
         with engine.connect() as connection:
             assert (
                 connection.scalar(text("SELECT version_num FROM alembic_version"))
-                == "0003"
+                == "0004"
             )
 
         assert set(inspector.get_table_names(schema="workflow")) >= (
@@ -105,6 +110,11 @@ def test_alembic_upgrades_phase_one_schema_with_phase_nine_evidence_tables(
         assert set(inspect(engine).get_table_names()) - before == {
             "flight_availability_evidence",
             "ticket_rule_evidence",
+            "rebooking_proposals",
+            "proposal_approvals",
+            "execution_attempts",
+            "booking_changes",
+            "proposal_audit_records",
         }
         assert set(inspect(engine).get_table_names(schema="workflow")) >= (
             EXPECTED_WORKFLOW_TABLES

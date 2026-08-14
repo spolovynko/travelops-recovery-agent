@@ -902,6 +902,66 @@ duplicate work. Reads remain the only airline operations.
 
 **Revisit when:** Phase 10 introduces proposals and effect-level idempotency.
 
+## D-051 — Separate recommendation, proposal, approval, and execution
+
+**Status:** Accepted
+
+**Decision:** Persist an expiring proposal snapshot between Phase 9 output and
+any decision, then keep execution as a separate freshly validated operation.
+
+**Consequences:** No fluent model output or recommendation can authorize a
+write; operators and audits can distinguish every boundary.
+
+## D-052 — Bind decisions to version and itinerary fingerprint
+
+**Status:** Accepted
+
+**Decision:** Require one attributable decision containing the exact proposal
+version and full itinerary fingerprint; prohibit creator self-approval.
+
+**Consequences:** Changes and stale forms cannot inherit old authorization.
+
+## D-053 — Recompute Phase 9 validation under execution locks
+
+**Status:** Accepted
+
+**Decision:** Lock safety-critical repository rows, rerun Phase 9 inside the
+transaction, and require itinerary and evidence fingerprints to remain equal.
+
+**Consequences:** Missing or changed status, schedule, seats, ticket, or policy
+evidence stops execution and escalates.
+
+## D-054 — Make PostgreSQL the idempotency and concurrency authority
+
+**Status:** Accepted
+
+**Decision:** Combine row locks with unique idempotency, proposal-change, and
+booking-change constraints rather than trusting process memory.
+
+**Consequences:** Retries and competing backend processes apply at most one
+synthetic change.
+
+## D-055 — Preserve original itinerary in an append-only change ledger
+
+**Status:** Accepted
+
+**Decision:** Keep original itinerary rows and record the synthetic replacement
+with before/after flight identifiers in `booking_changes`.
+
+**Consequences:** The phase proves a durable controlled effect without
+pretending to update an airline system or destroying original evidence.
+
+## D-056 — Pause the durable graph on authoritative proposal state
+
+**Status:** Accepted
+
+**Decision:** Checkpoint the proposal ID, release the workflow lease while it is
+awaiting approval, and resume by reading the stored decision and using a
+workflow-derived execution idempotency key.
+
+**Consequences:** Browser or backend restarts cannot invent approval or repeat a
+successful effect.
+
 ## Decision template
 
 ```markdown

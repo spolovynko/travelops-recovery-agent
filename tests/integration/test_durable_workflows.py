@@ -8,7 +8,7 @@ from functools import partial
 
 import pytest
 from pydantic import SecretStr
-from sqlalchemy import inspect
+from sqlalchemy import func, inspect, select
 
 from travelops_recovery_agent.agent.fixtures import (
     RECORDED_SCENARIOS,
@@ -19,9 +19,11 @@ from travelops_recovery_agent.agent.fixtures import (
 )
 from travelops_recovery_agent.agent.graph import AgentGraphContext, AgentGraphState
 from travelops_recovery_agent.agent.tools import ReadOnlyToolDispatcher
+from travelops_recovery_agent.application.proposals import ProposalService
 from travelops_recovery_agent.application.services import RecoveryDataService
 from travelops_recovery_agent.core.config import Environment, Settings
 from travelops_recovery_agent.data.generator import generate_dataset
+from travelops_recovery_agent.persistence.models import BookingChangeRecord
 from travelops_recovery_agent.persistence.session import (
     SessionFactory,
     create_database_engine,
@@ -259,6 +261,86 @@ def test_validated_recommendation_checkpoint_resumes_without_duplicate_work(
         assert [event.type for event in recommendation_events] == [
             WorkflowEventType.RECOMMENDATION_COMPLETED
         ]
+    finally:
+        restarted_store.close()
+        restarted_engine.dispose()
+
+
+@pytest.mark.integration
+def test_phase_ten_pauses_for_stored_approval_and_executes_once_after_restart(
+    workflow_database: tuple[Settings, WorkflowRepository, CheckpointStore],
+    test_database_url: str,
+) -> None:
+    settings, repository, first_store = workflow_database
+    first_engine = create_database_engine(
+        Settings(database_url=SecretStr(test_database_url))
+    )
+    sessions = create_session_factory(first_engine)
+    context = ApplicationGraphContextFactory(
+        sessions,
+        model_factory=lambda _: UnavailableDecisionModel(),
+        enable_proposals=True,
+    )
+    service = DurableWorkflowService(
+        repository,
+        first_store,
+        context,
+        enable_recommendations=True,
+        enable_proposals=True,
+    )
+    run = service.create_run("CASE-0002")
+    paused = service.execute(run.identity.run_id)
+    state = service.get_graph_state(run.identity.run_id)
+    assert paused.status is WorkflowStatus.PAUSED
+    assert state is not None
+    assert state["run_state"].proposal_status == "awaiting_approval"
+    proposal_id = state["run_state"].proposal_id
+    assert proposal_id is not None
+
+    proposal_service = ProposalService(sessions)
+    proposal = proposal_service.get(proposal_id).proposal
+    proposal_service.decide(
+        proposal_id,
+        version=proposal.version,
+        itinerary_fingerprint=proposal.itinerary_fingerprint,
+        approve=True,
+        actor_id="operator-1",
+        actor_role="recovery_operator",
+        correlation_id=run.identity.run_id,
+    )
+
+    # Stop after the effect node to model a backend loss before graph completion.
+    after_effect = service.execute(run.identity.run_id, max_steps=1)
+    assert after_effect.status is WorkflowStatus.PAUSED
+    with sessions() as session:
+        assert session.scalar(select(func.count(BookingChangeRecord.id))) == 1
+
+    first_store.close()
+    first_engine.dispose()
+    restarted_engine = create_database_engine(
+        Settings(database_url=SecretStr(test_database_url))
+    )
+    restarted_store = CheckpointStore(settings).open()
+    try:
+        restarted_sessions = create_session_factory(restarted_engine)
+        restarted = DurableWorkflowService(
+            WorkflowRepository(restarted_sessions),
+            restarted_store,
+            ApplicationGraphContextFactory(
+                restarted_sessions,
+                model_factory=lambda _: UnavailableDecisionModel(),
+                enable_proposals=True,
+            ),
+            enable_recommendations=True,
+            enable_proposals=True,
+        )
+        completed = restarted.execute(run.identity.run_id)
+        final_state = restarted.get_graph_state(run.identity.run_id)
+        assert completed.status is WorkflowStatus.COMPLETED
+        assert final_state is not None
+        assert final_state["run_state"].proposal_status == "executed"
+        with restarted_sessions() as session:
+            assert session.scalar(select(func.count(BookingChangeRecord.id))) == 1
     finally:
         restarted_store.close()
         restarted_engine.dispose()

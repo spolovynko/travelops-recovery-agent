@@ -5,16 +5,20 @@ from __future__ import annotations
 from datetime import datetime
 
 from sqlalchemy import (
+    JSON,
+    BigInteger,
     Boolean,
     CheckConstraint,
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
+    Identity,
     Index,
     Integer,
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -449,3 +453,145 @@ class RecoveryCaseRecord(Base):
     booking: Mapped[BookingRecord] = relationship()
     disruption: Mapped[DisruptionRecord] = relationship()
     policy: Mapped[DisruptionPolicyRecord] = relationship()
+
+
+class RebookingProposalRecord(Base):
+    __tablename__ = "rebooking_proposals"
+    __table_args__ = (
+        UniqueConstraint("case_id", "version", name="uq_proposal_case_version"),
+        CheckConstraint("version > 0", name="ck_proposal_positive_version"),
+        CheckConstraint("expires_at > created_at", name="ck_proposal_expiry"),
+        Index(
+            "uq_proposal_active_case",
+            "case_id",
+            unique=True,
+            postgresql_where=text(
+                "status IN ('awaiting_approval','approved','executing')"
+            ),
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    case_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("recovery_cases.id", ondelete="RESTRICT"), nullable=False
+    )
+    booking_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("bookings.id", ondelete="RESTRICT"), nullable=False
+    )
+    recommendation_reference: Mapped[str] = mapped_column(String(128), nullable=False)
+    validation_reference: Mapped[str] = mapped_column(String(128), nullable=False)
+    itinerary: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+    itinerary_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    evidence_snapshot: Mapped[list[dict[str, object]]] = mapped_column(
+        JSON, nullable=False
+    )
+    evidence_completeness: Mapped[str] = mapped_column(String(20), nullable=False)
+    evidence_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    created_by: Mapped[str] = mapped_column(String(100), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    required_role: Mapped[str] = mapped_column(String(64), nullable=False)
+    revalidation: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+    execution_result: Mapped[dict[str, object] | None] = mapped_column(JSON)
+    failure_reasons: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    escalation_reasons: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    workflow_run_id: Mapped[str | None] = mapped_column(String(36))
+    correlation_id: Mapped[str] = mapped_column(String(100), nullable=False)
+
+
+class ProposalApprovalRecord(Base):
+    __tablename__ = "proposal_approvals"
+    __table_args__ = (UniqueConstraint("proposal_id", name="uq_proposal_one_decision"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    proposal_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("rebooking_proposals.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    proposal_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    decision: Mapped[str] = mapped_column(String(16), nullable=False)
+    actor_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    actor_role: Mapped[str] = mapped_column(String(64), nullable=False)
+    itinerary_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    decided_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    reason: Mapped[str | None] = mapped_column(Text)
+
+
+class ExecutionAttemptRecord(Base):
+    __tablename__ = "execution_attempts"
+    __table_args__ = (
+        UniqueConstraint("idempotency_key", name="uq_execution_idempotency_key"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    proposal_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("rebooking_proposals.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    idempotency_key: Mapped[str] = mapped_column(String(128), nullable=False)
+    request_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    actor_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    result: Mapped[dict[str, object] | None] = mapped_column(JSON)
+    failure_reason: Mapped[str | None] = mapped_column(Text)
+
+
+class BookingChangeRecord(Base):
+    __tablename__ = "booking_changes"
+    __table_args__ = (
+        UniqueConstraint("proposal_id", name="uq_booking_change_proposal"),
+        UniqueConstraint("booking_id", name="uq_booking_change_booking"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    proposal_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("rebooking_proposals.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    booking_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("bookings.id", ondelete="RESTRICT"), nullable=False
+    )
+    original_itinerary: Mapped[list[dict[str, object]]] = mapped_column(
+        JSON, nullable=False
+    )
+    replacement_itinerary: Mapped[list[dict[str, object]]] = mapped_column(
+        JSON, nullable=False
+    )
+    applied_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+
+
+class ProposalAuditRecord(Base):
+    __tablename__ = "proposal_audit_records"
+    __table_args__ = (Index("ix_proposal_audit_order", "proposal_id", "sequence"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    sequence: Mapped[int] = mapped_column(BigInteger, Identity(), nullable=False)
+    proposal_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("rebooking_proposals.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    actor_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    correlation_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    details: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)

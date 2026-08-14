@@ -37,6 +37,10 @@ from travelops_recovery_agent.agent.tools import (
     UnknownToolError,
     fingerprint_tool_call,
 )
+from travelops_recovery_agent.application.proposal_models import (
+    ProposalStatus,
+    ProposalWithAudit,
+)
 from travelops_recovery_agent.application.recommendation_models import (
     RecommendationOutcome,
     RecommendationResult,
@@ -45,6 +49,7 @@ from travelops_recovery_agent.tools.contracts import ToolExecutionContext
 
 GraphNode = Literal[
     "validated_recommendation",
+    "proposal_approval",
     "intake",
     "model_reasoning",
     "decision_validation",
@@ -56,6 +61,7 @@ GraphNode = Literal[
 ]
 GraphRoute = Literal[
     "validated_recommendation",
+    "proposal_approval",
     "model_reasoning",
     "decision_validation",
     "tool_execution",
@@ -73,6 +79,29 @@ class RecommendationProvider(Protocol):
     def recommend(self, case_id: str) -> RecommendationResult: ...
 
 
+class ProposalProvider(Protocol):
+    def create_or_get(
+        self,
+        case_id: str,
+        *,
+        actor_id: str,
+        correlation_id: str,
+        workflow_run_id: str | None = None,
+    ) -> ProposalWithAudit: ...
+
+    def get(self, proposal_id: str) -> ProposalWithAudit: ...
+
+    def execute(
+        self,
+        proposal_id: str,
+        *,
+        idempotency_key: str,
+        actor_id: str,
+        actor_role: str,
+        correlation_id: str,
+    ) -> ProposalWithAudit: ...
+
+
 def utc_now() -> datetime:
     """Return the current timezone-aware UTC time."""
 
@@ -88,6 +117,8 @@ class AgentGraphContext:
     actor_id: str
     clock: Callable[[], datetime] = utc_now
     recommendation_provider: RecommendationProvider | None = None
+    proposal_provider: ProposalProvider | None = None
+    proposal_workflow_enabled: bool = False
 
 
 def append_node_history(
@@ -191,6 +222,7 @@ def validated_recommendation(
     """Compute a recommendation whose validity is owned entirely by application code."""
 
     update: AgentGraphUpdate = {"node_history": ("validated_recommendation",)}
+    route: GraphRoute
     provider = runtime.context.recommendation_provider
     if provider is None:
         update.update(
@@ -210,12 +242,21 @@ def validated_recommendation(
             summary = (
                 "No safe recovery itinerary exists; operator escalation is required."
             )
-        run_state = _replace_run_state(
-            state["run_state"],
-            status=RunStatus.COMPLETED,
-            final_outcome={"summary": summary},
-            recommendation=result,
-        )
+        if (
+            runtime.context.proposal_provider is None
+            or not runtime.context.proposal_workflow_enabled
+            or result.outcome is not RecommendationOutcome.RECOMMENDED
+        ):
+            run_state = _replace_run_state(
+                state["run_state"],
+                status=RunStatus.COMPLETED,
+                final_outcome={"summary": summary},
+                recommendation=result,
+            )
+            route = "completion"
+        else:
+            run_state = _replace_run_state(state["run_state"], recommendation=result)
+            route = "proposal_approval"
     except Exception:
         update.update(
             _pending_failure(
@@ -224,7 +265,89 @@ def validated_recommendation(
             )
         )
         return update
-    update.update({"run_state": run_state, "route": "completion"})
+    update.update({"run_state": run_state, "route": route})
+    return update
+
+
+def proposal_approval(
+    state: AgentGraphState,
+    runtime: Runtime[AgentGraphContext],
+) -> AgentGraphUpdate:
+    """Prepare once, pause via workflow service, then trust only a stored decision."""
+
+    update: AgentGraphUpdate = {"node_history": ("proposal_approval",)}
+    provider = runtime.context.proposal_provider
+    if provider is None:
+        update.update(
+            _pending_failure(
+                AgentFailureCode.RECOMMENDATION_FAILURE,
+                "the proposal service is not configured",
+            )
+        )
+        return update
+    run_state = state["run_state"]
+    route: GraphRoute
+    try:
+        view = (
+            provider.create_or_get(
+                run_state.case_id,
+                actor_id=runtime.context.actor_id,
+                correlation_id=run_state.run_id,
+                workflow_run_id=run_state.run_id,
+            )
+            if run_state.proposal_id is None
+            else provider.get(run_state.proposal_id)
+        )
+        proposal = view.proposal
+        if proposal.status is ProposalStatus.APPROVED:
+            view = provider.execute(
+                proposal.proposal_id,
+                idempotency_key=f"workflow:{run_state.run_id}:v{proposal.version}",
+                actor_id=runtime.context.actor_id,
+                actor_role="workflow_executor",
+                correlation_id=run_state.run_id,
+            )
+            proposal = view.proposal
+        if proposal.status in {
+            ProposalStatus.AWAITING_APPROVAL,
+            ProposalStatus.APPROVED,
+            ProposalStatus.EXECUTING,
+        }:
+            next_state = _replace_run_state(
+                run_state,
+                proposal_id=proposal.proposal_id,
+                proposal_status=proposal.status.value,
+            )
+            route = "proposal_approval"
+        else:
+            changed = proposal.status is ProposalStatus.EXECUTED
+            summary = (
+                "The explicitly approved proposal was freshly revalidated and executed once."
+                if changed
+                else f"Proposal ended as {proposal.status.value}; operator escalation is required."
+            )
+            next_state = _replace_run_state(
+                run_state,
+                status=RunStatus.COMPLETED,
+                final_outcome={"summary": summary},
+                proposal_id=proposal.proposal_id,
+                proposal_status=proposal.status.value,
+                proposal_execution_result=(
+                    proposal.execution_result.model_dump(mode="json")
+                    if proposal.execution_result is not None
+                    else None
+                ),
+            )
+            route = "completion"
+    except Exception:
+        update.update(
+            _pending_failure(
+                AgentFailureCode.RECOMMENDATION_FAILURE,
+                "proposal authorization or execution failed safely",
+            )
+        )
+        return update
+    update.update({"run_state": next_state, "route": route})
     return update
 
 
@@ -742,6 +865,7 @@ def build_recovery_graph(
     checkpointer: BaseCheckpointSaver[Any] | None = None,
     *,
     enable_recommendations: bool = False,
+    enable_proposals: bool = False,
 ) -> CompiledStateGraph[
     AgentGraphState,
     AgentGraphContext,
@@ -762,12 +886,24 @@ def build_recovery_graph(
 
     if enable_recommendations:
         builder.add_node("validated_recommendation", validated_recommendation)
+        if enable_proposals:
+            builder.add_node("proposal_approval", proposal_approval)
         builder.add_edge(START, "validated_recommendation")
         _add_routes(
             builder,
             "validated_recommendation",
-            ("completion", "safe_failure"),
+            (
+                ("proposal_approval", "completion", "safe_failure")
+                if enable_proposals
+                else ("completion", "safe_failure")
+            ),
         )
+        if enable_proposals:
+            _add_routes(
+                builder,
+                "proposal_approval",
+                ("proposal_approval", "completion", "safe_failure"),
+            )
     else:
         builder.add_edge(START, "intake")
     _add_routes(builder, "intake", ("model_reasoning", "safe_failure"))

@@ -20,6 +20,7 @@ from travelops_recovery_agent.agent.graph import (
 )
 from travelops_recovery_agent.agent.models import AgentDecision
 from travelops_recovery_agent.agent.tools import ReadOnlyToolDispatcher
+from travelops_recovery_agent.application.proposals import ProposalService
 from travelops_recovery_agent.application.query_services import OperationalQueryService
 from travelops_recovery_agent.application.recommendations import RecommendationService
 from travelops_recovery_agent.persistence.session import SessionFactory
@@ -62,6 +63,7 @@ class ApplicationGraphContextFactory:
     session_factory: SessionFactory
     model_factory: Callable[[WorkflowRun], DecisionModel]
     actor_id: str = "workflow-runner"
+    enable_proposals: bool = False
 
     def __call__(
         self, run: WorkflowRun, graph_state: AgentGraphState | None
@@ -86,4 +88,6 @@ class ApplicationGraphContextFactory:
             recommendation_provider=RecommendationService(
                 partial(SqlAlchemyRecoveryDataUnitOfWork, self.session_factory)
             ),
+            proposal_provider=ProposalService(self.session_factory),
+            proposal_workflow_enabled=self.enable_proposals,
         )

@@ -6,6 +6,7 @@ import type {
   AlternativeCandidate,
   ItineraryValidation,
   RecommendationOption,
+  ProposalWithAudit,
   RecoveryCaseWorkspace,
 } from "../../api/models";
 import { ErrorState, LoadingState } from "../../components/AsyncState";
@@ -160,6 +161,7 @@ function Workspace({ data }: { data: RecoveryCaseWorkspace }) {
             subtitle="Validated recommendation and manual exploration"
           />
           <RecommendationPanel data={data} />
+          <ProposalPanel caseId={data.case_id} />
           <div className="explorer-heading">
             <h3>Manual schedule explorer</h3>
             <p>
@@ -278,15 +280,185 @@ function Workspace({ data }: { data: RecoveryCaseWorkspace }) {
             </ol>
           </div>
           <div className="phase-boundary">
-            <strong>Phase 9 boundary</strong>
+            <strong>Phase 10 safety boundary</strong>
             <p>
-              Recommendations are evidence-grounded and read-only. No booking
-              write, seat claim, approval or reservation occurs here.
+              A recommendation is read-only. A separate versioned proposal needs
+              attributable approval and fresh revalidation before one synthetic
+              write.
             </p>
           </div>
         </aside>
       </div>
     </div>
+  );
+}
+
+function ProposalPanel({ caseId }: { caseId: string }) {
+  const [proposal, setProposal] = useState<ProposalWithAudit | null>(null);
+  const create = useMutation({
+    mutationFn: () => recoveryApi.createProposal(caseId),
+    onSuccess: setProposal,
+  });
+  const decide = useMutation({
+    mutationFn: (input: {
+      decision: "approve" | "reject";
+      reason?: string;
+    }) => {
+      if (!proposal) throw new Error("No proposal is loaded.");
+      return recoveryApi.decideProposal(
+        proposal.proposal.proposal_id,
+        {
+          version: proposal.proposal.version,
+          itinerary_fingerprint: proposal.proposal.itinerary_fingerprint,
+          reason: input.reason,
+        },
+        input.decision,
+      );
+    },
+    onSuccess: setProposal,
+  });
+  const execute = useMutation({
+    mutationFn: () => {
+      if (!proposal) throw new Error("No proposal is loaded.");
+      return recoveryApi.executeProposal(
+        proposal.proposal.proposal_id,
+        `ui-${proposal.proposal.proposal_id}-v${proposal.proposal.version}`,
+      );
+    },
+    onSuccess: setProposal,
+  });
+  const error = create.error ?? decide.error ?? execute.error;
+
+  if (!proposal)
+    return (
+      <section className="proposal-panel" aria-label="Recovery proposal">
+        <p className="eyebrow">Proposal</p>
+        <h3>Prepare a controlled recovery action</h3>
+        <p>
+          Copies the validated itinerary and evidence into an expiring,
+          versioned proposal. This does not change the booking.
+        </p>
+        <button
+          className="button"
+          disabled={create.isPending}
+          onClick={() => create.mutate()}
+        >
+          {create.isPending ? "Preparing…" : "Prepare proposal"}
+        </button>
+        {error && <ErrorState error={error} />}
+      </section>
+    );
+
+  const value = proposal.proposal;
+  const awaiting = value.status === "awaiting_approval";
+  return (
+    <section
+      className="proposal-panel"
+      aria-live="polite"
+      aria-label="Recovery proposal"
+    >
+      <div className="recommendation-title">
+        <div>
+          <p className="eyebrow">Proposal · version {value.version}</p>
+          <h3>{label(value.status)}</h3>
+        </div>
+        <StatusBadge status={value.status} />
+      </div>
+      <p>
+        <strong>Expires:</strong> {exactDate(value.expires_at)}
+      </p>
+      <p>
+        Approval binds to itinerary fingerprint{" "}
+        <code>{value.itinerary_fingerprint.slice(0, 12)}…</code>.
+      </p>
+      <RecommendationOptionCard option={value.proposed_itinerary} />
+      {awaiting && (
+        <div className="proposal-actions">
+          <button
+            className="button"
+            disabled={decide.isPending}
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Approve proposal version ${value.version}? This authorizes later execution only after fresh revalidation.`,
+                )
+              )
+                decide.mutate({ decision: "approve" });
+            }}
+          >
+            Approve exact proposal
+          </button>
+          <button
+            className="button secondary"
+            disabled={decide.isPending}
+            onClick={() => {
+              const reason = window.prompt(
+                "Why is this proposal being rejected?",
+              );
+              if (reason?.trim())
+                decide.mutate({ decision: "reject", reason: reason.trim() });
+            }}
+          >
+            Reject
+          </button>
+        </div>
+      )}
+      {value.execution_eligible && (
+        <button
+          className="button"
+          disabled={execute.isPending}
+          onClick={() => {
+            if (
+              window.confirm(
+                "Execute the approved synthetic rebooking? Safety evidence will be revalidated before the transactional write.",
+              )
+            )
+              execute.mutate();
+          }}
+        >
+          {execute.isPending
+            ? "Revalidating and executing…"
+            : "Revalidate and execute"}
+        </button>
+      )}
+      <p>
+        <strong>Pre-execution revalidation:</strong>{" "}
+        {label(value.revalidation.status)}
+      </p>
+      {value.execution_result && (
+        <div className="state-card">
+          <strong>Booking change durably confirmed</strong>
+          <p>
+            {value.execution_result.original_flight_ids.join(" → ")} became{" "}
+            {value.execution_result.replacement_flight_ids.join(" → ")}.
+          </p>
+        </div>
+      )}
+      {value.failure_reasons.length > 0 && (
+        <div className="state-card state-error">
+          <strong>Execution stopped safely</strong>
+          <ul>
+            {value.failure_reasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <details open className="ranking-method">
+        <summary>
+          Immutable audit history ({proposal.audit_history.length})
+        </summary>
+        <ol>
+          {proposal.audit_history.map((item) => (
+            <li key={item.audit_id}>
+              <strong>{label(item.event_type)}</strong> · {item.actor_id} ·{" "}
+              {exactDate(item.occurred_at)}
+            </li>
+          ))}
+        </ol>
+      </details>
+      {error && <ErrorState error={error} />}
+    </section>
   );
 }
 

@@ -2,10 +2,10 @@
 
 ## Current state
 
-- **Current phase:** Phase 9 — validated recommendations and evidence
+- **Current phase:** Phase 10 — proposal, approval, and safe execution
 - **Status:** Complete
-- **Last completed result:** Only fully validated itineraries can be recommended; every outcome exposes evidence, ranking inputs, tradeoffs, rejections, or safe escalation
-- **Next gate:** Review Phase 9 scope; begin proposal, approval, evidence recheck, idempotent execution, and audit work only as an explicitly requested Phase 10
+- **Last completed result:** Only an explicitly approved exact proposal can pass fresh revalidation and create one synthetic booking change with immutable audit
+- **Next gate:** Review Phase 10 evidence; begin Phase 11 only when explicitly requested
 
 ## Concepts confirmed in Phase 0
 
@@ -486,3 +486,33 @@ Phase 10. Live airline services and a trusted default model remain deferred.
 
 **Next smallest step:** Review the Phase 9 scope. Begin Phase 10 only after an
 explicit request.
+
+## Session 11 — 2026-08-14
+
+**Phase:** Phase 10 — proposal, approval, and safe execution
+
+**Built:** Strict proposal, decision, revalidation, execution, and audit
+contracts; deterministic lifecycle transitions; Alembic `0004`; exact
+version/fingerprint approval with explicit actor context, expiry, and
+self-approval protection; locked fresh Phase 9 revalidation;
+provider-independent transactional synthetic execution; idempotency and booking
+concurrency constraints; immutable audit; proposal APIs; durable approval
+pause/resume; structured workflow events; and distinct React states.
+
+**Verified:** Existing Phase 6–9 regressions, proposal contract tests, real
+PostgreSQL migration/API/transaction/evidence-change/provider-failure/replay/
+restart/audit tests, frontend component tests, static checks, and builds.
+
+**Concepts confirmed:** Recommendation versus proposal versus approval versus
+execution; exact-version decisions; TOCTOU revalidation; row locks, constraints,
+transactions and savepoints; effect idempotency; durable human pauses;
+immutable minimized audit; synthetic versus external providers.
+
+**Still unclear:** Real airline provider semantics, external inventory holds,
+production authentication, reconciliation, compensation, and distributed
+operational monitoring remain outside this synthetic phase.
+
+**Decisions:** D-051 through D-056.
+
+**Next smallest step:** Review Phase 10. Begin Phase 11 only after an explicit
+request.

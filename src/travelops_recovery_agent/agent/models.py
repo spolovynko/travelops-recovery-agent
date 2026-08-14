@@ -205,6 +205,9 @@ class AgentRunState(AgentContractModel):
     information_request: AskInformationDecision | None = None
     failure: SafeAgentFailure | None = None
     recommendation: RecommendationResult | None = None
+    proposal_id: ReferenceText | None = None
+    proposal_status: ReferenceText | None = None
+    proposal_execution_result: dict[str, JsonValue] | None = None
 
     @field_validator("started_at")
     @classmethod
@@ -266,9 +269,11 @@ class AgentRunState(AgentContractModel):
             evidence_ids = set(self.final_outcome.evidence_ids)
             if not evidence_ids.issubset(known_observations):
                 raise ValueError("final outcome references unknown evidence")
-        if self.recommendation is not None:
-            if self.status is not RunStatus.COMPLETED:
-                raise ValueError("recommendations require a completed run")
-            if self.recommendation.case_id != self.case_id:
-                raise ValueError("recommendation case must match the run case")
+        if (
+            self.recommendation is not None
+            and self.recommendation.case_id != self.case_id
+        ):
+            raise ValueError("recommendation case must match the run case")
+        if self.proposal_id is None and self.proposal_status is not None:
+            raise ValueError("proposal status requires a proposal identifier")
         return self

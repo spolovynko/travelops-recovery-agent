@@ -87,6 +87,7 @@ The [UI specification](ui.md) maps visible operator and developer-facing UI incr
 
 - Converts recommendations into useful actions while keeping the exact rebooking under human control.
 - Adds proposal expiry, final validation, authorization, idempotency, and auditing so a write cannot execute casually or twice.
+- Complete: the PostgreSQL-backed synthetic executor preserves the original itinerary, records the replacement once, and resumes durably around human approval.
 
 ### Phase 11 — failure testing, evaluation, and first release
 

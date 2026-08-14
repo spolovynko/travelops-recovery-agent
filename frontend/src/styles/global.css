@@ -898,6 +898,21 @@ code {
   border-radius: 10px;
   background: #f3faf5;
 }
+
+.proposal-panel {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border: 2px solid var(--ink, #17202a);
+  border-radius: 0.75rem;
+  background: #fffdf5;
+}
+
+.proposal-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
 .recommendation.escalation {
   border-color: #d7aa8d;
   background: #fff7f1;

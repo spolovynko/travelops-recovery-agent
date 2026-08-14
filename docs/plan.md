@@ -317,11 +317,11 @@ The agent recommends only validated itineraries, cites the inputs used, and esca
 
 ### Ship
 
-- `prepare_rebooking` proposal tool
-- Approval screen showing the exact old and new itinerary
-- Approve, edit, reject, and expire paths
-- `execute_rebooking` behind authorization, approval token, final availability check, and idempotency key
-- Immutable audit record
+- Versioned proposal API and approval screen showing the exact old and new itinerary
+- Attributable approve, reject, version, and expiry paths
+- Provider-independent synthetic execution behind authorization, stored approval, fresh evidence validation, and an idempotency key
+- Transactional booking-change ledger and immutable minimized audit records
+- Durable LangGraph pause/resume around authoritative human approval
 
 ### Learn to explain
 

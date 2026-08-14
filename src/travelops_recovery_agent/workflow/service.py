@@ -59,6 +59,7 @@ class DurableWorkflowService:
         max_model_turns: int = 8,
         max_malformed_retries: int = 1,
         enable_recommendations: bool = False,
+        enable_proposals: bool = False,
     ) -> None:
         self._repository = repository
         self._checkpoint_store = checkpoint_store
@@ -75,6 +76,7 @@ class DurableWorkflowService:
         self._graph = build_recovery_graph(
             checkpoint_store.saver,
             enable_recommendations=enable_recommendations,
+            enable_proposals=enable_proposals,
         )
 
     def create_run(self, case_id: str) -> WorkflowRun:
@@ -189,6 +191,28 @@ class DurableWorkflowService:
             snapshot = self._graph.get_state(self._config(current_run))
             if not snapshot.next:
                 return self._finish_from_graph(current_run, after, lease_owner)
+            if (
+                next_node == "proposal_approval"
+                and after["run_state"].proposal_status == "awaiting_approval"
+            ):
+                paused_at = self._clock()
+                paused = self._repository.release_lease(
+                    run_id,
+                    owner=lease_owner,
+                    now=paused_at,
+                    status=WorkflowStatus.PAUSED,
+                )
+                self._repository.append_event(
+                    run_id,
+                    WorkflowEventType.RUN_PAUSED,
+                    paused_at,
+                    {
+                        "status": WorkflowStatus.PAUSED.value,
+                        "reason": "awaiting_authoritative_approval",
+                        "proposal_id": after["run_state"].proposal_id,
+                    },
+                )
+                return self._repository.get_run(paused.identity.run_id)
             if max_steps is not None and completed_steps >= max_steps:
                 paused_at = self._clock()
                 paused = self._repository.release_lease(
@@ -285,13 +309,13 @@ class DurableWorkflowService:
             0 if before is None else len(before["run_state"].tool_observations)
         )
         for observation in run_state.tool_observations[previous_observations:]:
-            payload: SafePayload = {
+            tool_payload: SafePayload = {
                 "tool_name": observation.tool_name,
                 "ok": observation.ok,
                 "observation_id": observation.observation_id,
             }
             self._repository.append_event(
-                run_id, WorkflowEventType.TOOL_COMPLETED, now, payload
+                run_id, WorkflowEventType.TOOL_COMPLETED, now, tool_payload
             )
             self._repository.append_event(
                 run_id,
@@ -347,6 +371,53 @@ class DurableWorkflowService:
                     ),
                 },
             )
+        if node == "proposal_approval" and run_state.proposal_id is not None:
+            before_status = (
+                None if before is None else before["run_state"].proposal_status
+            )
+            proposal_payload: SafePayload = {
+                "proposal_id": run_state.proposal_id,
+                "proposal_status": run_state.proposal_status,
+            }
+            if run_state.proposal_status == "awaiting_approval":
+                self._repository.append_event(
+                    run_id,
+                    WorkflowEventType.PROPOSAL_AWAITING_APPROVAL,
+                    now,
+                    proposal_payload,
+                )
+            elif run_state.proposal_status == "executed":
+                if before_status == "awaiting_approval":
+                    self._repository.append_event(
+                        run_id,
+                        WorkflowEventType.APPROVAL_RECORDED,
+                        now,
+                        proposal_payload,
+                    )
+                self._repository.append_event(
+                    run_id,
+                    WorkflowEventType.REVALIDATION_COMPLETED,
+                    now,
+                    {**proposal_payload, "status": "passed"},
+                )
+                self._repository.append_event(
+                    run_id,
+                    WorkflowEventType.EXECUTION_COMPLETED,
+                    now,
+                    {**proposal_payload, "status": "succeeded"},
+                )
+            elif run_state.proposal_status in {
+                "rejected",
+                "expired",
+                "revalidation_failed",
+                "execution_failed",
+            }:
+                self._repository.append_event(
+                    run_id,
+                    WorkflowEventType.PROPOSAL_ESCALATED,
+                    now,
+                    proposal_payload,
+                )
 
     def _finish_from_graph(
         self, run: WorkflowRun, state: AgentGraphState, lease_owner: str

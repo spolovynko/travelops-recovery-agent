@@ -1,4 +1,8 @@
-import type { OperationalStatus, ValidationStatus } from "../api/models";
+import type {
+  OperationalStatus,
+  ProposalStatus,
+  ValidationStatus,
+} from "../api/models";
 
 const symbols: Record<string, string> = {
   scheduled: "●",
@@ -14,7 +18,8 @@ const symbols: Record<string, string> = {
 export function StatusBadge({
   status,
 }: {
-  status: OperationalStatus | ValidationStatus | "not_validated";
+  status:
+    OperationalStatus | ValidationStatus | ProposalStatus | "not_validated";
 }) {
   const label = status.replaceAll("_", " ");
   return (

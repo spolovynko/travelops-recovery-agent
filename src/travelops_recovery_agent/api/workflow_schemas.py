@@ -3,9 +3,10 @@
 from datetime import datetime
 from typing import Annotated, cast
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, JsonValue
 
 from travelops_recovery_agent.agent.graph import AgentGraphState, GraphNode
+from travelops_recovery_agent.application.proposal_models import ProposalStatus
 from travelops_recovery_agent.application.recommendation_models import (
     RecommendationResult,
 )
@@ -45,6 +46,9 @@ class WorkflowRunView(WorkflowViewModel):
     failure_message: str | None
     last_event_sequence: Annotated[int, Field(ge=0)]
     recommendation: RecommendationResult | None
+    proposal_id: str | None = None
+    proposal_status: ProposalStatus | None = None
+    proposal_execution_result: dict[str, JsonValue] | None = None
 
 
 class WorkflowConflictView(WorkflowViewModel):
@@ -79,6 +83,9 @@ def workflow_run_view(
             failure_message=None,
             last_event_sequence=run.last_event_sequence,
             recommendation=None,
+            proposal_id=None,
+            proposal_status=None,
+            proposal_execution_result=None,
         )
     agent_state = state["run_state"]
     outcome = agent_state.final_outcome
@@ -119,4 +126,11 @@ def workflow_run_view(
         failure_message=None if failure is None else failure.message,
         last_event_sequence=run.last_event_sequence,
         recommendation=agent_state.recommendation,
+        proposal_id=agent_state.proposal_id,
+        proposal_status=(
+            ProposalStatus(agent_state.proposal_status)
+            if agent_state.proposal_status
+            else None
+        ),
+        proposal_execution_result=agent_state.proposal_execution_result,
     )

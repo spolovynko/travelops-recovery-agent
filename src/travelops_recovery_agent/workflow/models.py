@@ -81,6 +81,11 @@ class WorkflowEventType(StrEnum):
     REPLAY_RESET_REQUIRED = "stream.replay_reset_required"
     RECOMMENDATION_COMPLETED = "recommendation.completed"
     RECOMMENDATION_ESCALATED = "recommendation.escalated"
+    PROPOSAL_AWAITING_APPROVAL = "proposal.awaiting_approval"
+    APPROVAL_RECORDED = "approval.recorded"
+    REVALIDATION_COMPLETED = "revalidation.completed"
+    EXECUTION_COMPLETED = "execution.completed"
+    PROPOSAL_ESCALATED = "proposal.escalated"
 
 
 class WorkflowIdentity(WorkflowContract):

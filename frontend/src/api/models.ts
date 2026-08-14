@@ -154,6 +154,81 @@ export interface RecommendationResult {
   ranking_method: string;
 }
 
+export type ProposalStatus =
+  | "drafted"
+  | "awaiting_approval"
+  | "approved"
+  | "rejected"
+  | "expired"
+  | "revalidation_failed"
+  | "executing"
+  | "executed"
+  | "execution_failed";
+
+export interface ProposalWithAudit {
+  proposal: {
+    proposal_id: string;
+    version: number;
+    case_id: string;
+    booking_id: string;
+    recommendation_reference: string;
+    validation_reference: string;
+    proposed_itinerary: RecommendationOption;
+    itinerary_fingerprint: string;
+    evidence_snapshot: RecommendationEvidence[];
+    evidence_completeness: EvidenceCompleteness;
+    evidence_fingerprint: string;
+    created_at: string;
+    expires_at: string;
+    created_by: string;
+    status: ProposalStatus;
+    required_approver: {
+      required_role: string;
+      self_approval_prohibited: boolean;
+    };
+    decision: {
+      decision: "approved" | "rejected";
+      actor_id: string;
+      actor_role: string;
+      proposal_version: number;
+      itinerary_fingerprint: string;
+      decided_at: string;
+      reason: string | null;
+    } | null;
+    execution_eligible: boolean;
+    revalidation: {
+      status: "not_run" | "passed" | "failed";
+      checked_at: string | null;
+      checks: string[];
+      failure_reasons: string[];
+    };
+    execution_result: {
+      status: "succeeded" | "failed";
+      execution_id: string;
+      idempotency_key_hash: string;
+      booking_id: string;
+      executed_at: string;
+      original_flight_ids: string[];
+      replacement_flight_ids: string[];
+      provider: string;
+    } | null;
+    failure_reasons: string[];
+    escalation_reasons: string[];
+    workflow_run_id: string | null;
+    correlation_id: string;
+  };
+  audit_history: {
+    audit_id: string;
+    sequence: number;
+    proposal_id: string;
+    event_type: string;
+    actor_id: string;
+    occurred_at: string;
+    correlation_id: string;
+    details: Record<string, unknown>;
+  }[];
+}
+
 export interface CandidateSegment {
   flight_id: string;
   service: string;
@@ -214,6 +289,7 @@ export type WorkflowStatus =
 
 export type WorkflowNode =
   | "validated_recommendation"
+  | "proposal_approval"
   | "intake"
   | "model_reasoning"
   | "decision_validation"
@@ -252,6 +328,9 @@ export interface WorkflowRun {
   failure_message: string | null;
   last_event_sequence: number;
   recommendation: RecommendationResult | null;
+  proposal_id?: string | null;
+  proposal_status?: ProposalStatus | null;
+  proposal_execution_result?: Record<string, unknown> | null;
 }
 
 export interface WorkflowEvent {
