@@ -236,3 +236,37 @@ flowchart LR
 ```
 
 Each addition must preserve the boundary rules in this document and remain removable behind a stable interface or feature flag when the phase is experimental.
+## Phase 8 durable workflow and live-progress path
+
+```mermaid
+flowchart LR
+    UI["React activity panel"] -->|"start, inspect, cancel, resume"| API["FastAPI workflow routes"]
+    UI <-->|"SSE cursor replay"| EVENTS["Safe event endpoint"]
+    API --> EXECUTOR["Bounded in-process launcher"]
+    EXECUTOR --> LEASE["PostgreSQL workflow lease"]
+    LEASE --> GRAPH["Phase 7 StateGraph"]
+    GRAPH --> CHECKPOINT[("workflow schema checkpoints")]
+    GRAPH --> TOOLS["Phase 4 read-only tools"]
+    TOOLS --> BUSINESS[("public business schema")]
+    GRAPH --> PROJECT["Safe event projector"]
+    PROJECT --> EVENT_DB[("workflow.workflow_events")]
+    EVENT_DB --> EVENTS
+```
+
+The launcher is not a second orchestration framework or durable task queue. It
+only asks the application service to claim a run. A unique partial index blocks
+a second active run for one case, and an expiring lease blocks concurrent resume
+attempts for one run.
+
+The graph executes one checkpointed node boundary at a time. Between boundaries
+the lifecycle service can renew its lease, observe cancellation, pause, or
+continue. Resume supplies the saved `thread_id` and no new graph input. Runtime
+context is reconstructed through a factory; provider clients, dispatchers,
+sessions, repositories, credentials, SQL, and callables never enter graph state.
+
+The `workflow` PostgreSQL schema holds application run/event tables and the
+official saver's internal checkpoint tables. Business records remain in the
+public schema. Events expose safe summaries and references only. The browser
+loads the run snapshot first, then streams after that snapshot's sequence so a
+refresh or reconnect cannot silently replace authoritative state with a partial
+event history.

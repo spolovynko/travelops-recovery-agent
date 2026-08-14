@@ -234,7 +234,7 @@ def test_search_request_validation_rejects_an_invalid_window() -> None:
     assert response.status_code == 422
 
 
-def test_openapi_publishes_only_the_intended_phase_five_routes() -> None:
+def test_openapi_publishes_read_only_recovery_and_phase_eight_workflow_routes() -> None:
     schema = create_app(
         Settings(environment=Environment.TEST), RecoveryQueryServiceStub()
     ).openapi()
@@ -245,4 +245,9 @@ def test_openapi_publishes_only_the_intended_phase_five_routes() -> None:
         "/api/v1/recovery-cases/{case_id}",
         "/api/v1/alternative-itineraries/search",
         "/api/v1/itineraries/validate",
+        "/api/v1/recovery-cases/{case_id}/workflow-runs",
+        "/api/v1/workflow-runs/{run_id}",
+        "/api/v1/workflow-runs/{run_id}/events",
+        "/api/v1/workflow-runs/{run_id}/cancel",
+        "/api/v1/workflow-runs/{run_id}/resume",
     }

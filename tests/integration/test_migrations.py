@@ -24,6 +24,11 @@ EXPECTED_BUSINESS_TABLES = {
     "recovery_cases",
 }
 
+EXPECTED_WORKFLOW_TABLES = {
+    "workflow_events",
+    "workflow_runs",
+}
+
 
 @contextmanager
 def configured_alembic(
@@ -56,8 +61,13 @@ def test_alembic_builds_the_business_schema_from_zero(
         with engine.connect() as connection:
             assert (
                 connection.scalar(text("SELECT version_num FROM alembic_version"))
-                == "0001"
+                == "0002"
             )
+
+        assert set(inspector.get_table_names(schema="workflow")) >= (
+            EXPECTED_WORKFLOW_TABLES
+        )
+        assert EXPECTED_WORKFLOW_TABLES.isdisjoint(inspector.get_table_names())
 
         flight_columns = {
             column["name"]: column for column in inspector.get_columns("flights")
@@ -68,5 +78,29 @@ def test_alembic_builds_the_business_schema_from_zero(
             assert column["nullable"] is False
             assert isinstance(column_type, DateTime)
             assert column_type.timezone is True
+    finally:
+        engine.dispose()
+
+
+@pytest.mark.integration
+def test_alembic_upgrades_the_phase_seven_schema_without_changing_business_tables(
+    test_database_url: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    engine = create_database_engine(Settings(database_url=SecretStr(test_database_url)))
+    try:
+        with configured_alembic(test_database_url, monkeypatch) as config:
+            command.downgrade(config, "base")
+            command.upgrade(config, "0001")
+            before = set(inspect(engine).get_table_names())
+            assert before >= EXPECTED_BUSINESS_TABLES
+            assert inspect(engine).get_table_names(schema="workflow") == []
+
+            command.upgrade(config, "head")
+
+        assert set(inspect(engine).get_table_names()) == before
+        assert set(inspect(engine).get_table_names(schema="workflow")) >= (
+            EXPECTED_WORKFLOW_TABLES
+        )
     finally:
         engine.dispose()

@@ -388,3 +388,44 @@ provider benchmarks and production integrations.
 **Next smallest step:** Review the Phase 7 diff and learning notes. Begin Phase
 8 durability only after an explicit request; do not add checkpointing as Phase
 7 cleanup.
+
+## Session 9 — 2026-08-13
+
+**Phase:** Phase 8 — durable LangGraph checkpoints and live workflow progress
+
+**Built:** Locked the official PostgreSQL checkpointer; added the isolated
+`workflow` schema, stable case/run/thread identity, run lifecycle records,
+leases, cancellation, safe ordered events, retention and strict serialization;
+compiled the unchanged eight-node graph with durable checkpoints; reconstructed
+runtime dependencies after store disposal; added start, inspect, SSE, cancel and
+resume APIs; and integrated snapshot-first live progress into the Phase 5 React
+workspace with URL-owned run identity and reconnect behavior.
+
+**Verified:** The real-PostgreSQL suite covers saver table isolation, all ten
+recorded scenarios, a pause after completed tool execution, original runtime
+disposal, resume without repeated tool work, duplicate active-run prevention,
+repeated cancellation/resume protection, event ordering and retention, terminal
+SSE, `Last-Event-ID` replay, replay-gap reset, and safe event fields. The original
+manual-loop/graph equivalence remains green. Frontend tests cover durable
+terminal rendering and refresh/reconnect; Playwright covers stream restart and
+URL restoration. The final quality gate is recorded in the Phase 8 notes.
+
+**Concepts confirmed:** Durable execution, checkpoints, saver ownership, thread
+versus run identity, serialization boundaries, runtime reconstruction,
+at-least-once execution, idempotency limits, leases, cooperative cancellation,
+ordered progress events, SSE cursors, reconnect, replay, backpressure, and
+retention.
+
+**Still unclear:** No model has earned default selection. Synchronous calls
+cannot be forcibly interrupted, and saver checkpoint pruning requires future
+operational-volume evidence separate from UI-event retention.
+
+**Decisions:** [D-036 through D-045](decisions.md#d-036--use-the-official-postgresql-langgraph-checkpointer).
+
+**Parked:** Recommendation ranking and benchmarks, inventory, price, route and
+ticket rules, proposals, approval, booking writes, external queues, hosted
+LangGraph, production deployment, multi-agent behavior, MCP, and provider
+selection.
+
+**Next smallest step:** Review the intended unstaged Phase 8 diff. Begin Phase 9
+only after an explicit request.

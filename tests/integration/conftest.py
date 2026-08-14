@@ -20,6 +20,8 @@ from travelops_recovery_agent.persistence.session import (
 
 TEST_DATABASE_URL_ENV = "TRAVELOPS_TEST_DATABASE_URL"
 MANAGED_TABLES = (
+    "workflow.workflow_events",
+    "workflow.workflow_runs",
     "recovery_cases",
     "disruptions",
     "disruption_policy_types",

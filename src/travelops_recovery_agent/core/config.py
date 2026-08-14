@@ -2,7 +2,7 @@
 
 from enum import StrEnum
 
-from pydantic import SecretStr
+from pydantic import PositiveInt, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -31,3 +31,6 @@ class Settings(BaseSettings):
     log_level: LogLevel = LogLevel.INFO
     service_token: SecretStr | None = None
     database_url: SecretStr | None = None
+    workflow_event_retention_hours: PositiveInt = 168
+    workflow_event_batch_size: PositiveInt = 100
+    workflow_sse_heartbeat_seconds: PositiveInt = 10

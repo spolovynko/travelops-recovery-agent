@@ -130,3 +130,62 @@ export interface ApiErrorPayload {
   error?: { code?: string; message?: string; retryable?: boolean };
   detail?: unknown;
 }
+
+export type WorkflowStatus =
+  | "created"
+  | "running"
+  | "paused"
+  | "cancelling"
+  | "cancelled"
+  | "completed"
+  | "awaiting_information"
+  | "failed";
+
+export type WorkflowNode =
+  | "intake"
+  | "model_reasoning"
+  | "decision_validation"
+  | "tool_execution"
+  | "outcome_handling"
+  | "information_or_escalation"
+  | "completion"
+  | "safe_failure";
+
+export interface WorkflowToolActivity {
+  observation_id: string;
+  tool_name: string;
+  ok: boolean;
+}
+
+export interface WorkflowRun {
+  run_id: string;
+  thread_id: string;
+  case_id: string;
+  status: WorkflowStatus;
+  created_at: string;
+  updated_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+  cancel_requested: boolean;
+  current_node: WorkflowNode | null;
+  completed_steps: WorkflowNode[];
+  current_turn: number;
+  retry_count: number;
+  tool_activity: WorkflowToolActivity[];
+  evidence_ids: string[];
+  outcome_summary: string | null;
+  information_question: string | null;
+  missing_fields: string[];
+  failure_code: string | null;
+  failure_message: string | null;
+  last_event_sequence: number;
+}
+
+export interface WorkflowEvent {
+  event_id: string;
+  run_id: string;
+  sequence: number;
+  type: string;
+  occurred_at: string;
+  payload: Record<string, unknown>;
+}

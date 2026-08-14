@@ -148,3 +148,43 @@ export const validationPayload = {
     },
   ],
 };
+
+export const workflowPayload = {
+  run_id: "run-0123456789abcdef",
+  thread_id: "thread-0123456789abcdef",
+  case_id: "CASE-0001",
+  status: "completed",
+  created_at: "2026-08-13T19:00:00Z",
+  updated_at: "2026-08-13T19:00:05Z",
+  started_at: "2026-08-13T19:00:00Z",
+  finished_at: "2026-08-13T19:00:05Z",
+  cancel_requested: false,
+  current_node: null,
+  completed_steps: [
+    "intake",
+    "model_reasoning",
+    "decision_validation",
+    "tool_execution",
+    "outcome_handling",
+    "model_reasoning",
+    "decision_validation",
+    "outcome_handling",
+    "completion",
+  ],
+  current_turn: 2,
+  retry_count: 0,
+  tool_activity: [
+    {
+      observation_id: "observation-1",
+      tool_name: "get_booking",
+      ok: true,
+    },
+  ],
+  evidence_ids: ["observation-1"],
+  outcome_summary: "The read-only investigation is complete.",
+  information_question: null,
+  missing_fields: [],
+  failure_code: null,
+  failure_message: null,
+  last_event_sequence: 26,
+} as const;

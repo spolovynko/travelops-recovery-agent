@@ -267,18 +267,34 @@ uv run --locked pytest tests/agent/test_graph.py
 
 LangGraph is the orchestration runtime; the full LangChain agent framework is
 not used. Application code directly uses only LangChain Core's `RunnableConfig`
-type for strict graph invocation typing. The graph is compiled without a
-checkpointer, so persistence and resumption remain Phase 8 work.
+type for strict graph invocation typing. Phase 8 now optionally compiles this
+same graph with the official PostgreSQL checkpointer.
 
 See [the detailed Phase 7 learning notes](docs/notes/phase-7.md) for the complete
 node map, state evolution, provider and tool boundaries, terminology, decisions,
 equivalence proof, and Phase 7/Phase 8 comparison.
 
+## Phase 8 durable investigations
+
+After applying migration `0002`, the Phase 5 case workspace can start a durable
+read-only investigation. PostgreSQL stores workflow lifecycle records, safe
+events, and LangGraph checkpoints in the dedicated `workflow` schema. The run ID
+is retained in the case URL; refresh restores the authoritative snapshot and
+SSE resumes from an event cursor or `Last-Event-ID`.
+
+The API supports start, inspect, stream, cancel, and resume under
+`/api/v1`. Cancellation is cooperative at graph boundaries. A synchronous model
+or database call already executing cannot necessarily be forcibly interrupted.
+No model is configured by default; an unconfigured investigation fails safely.
+
+See [the detailed Phase 8 learning notes](docs/notes/phase-8.md) for checkpoint
+storage, identity, restart semantics, runtime reconstruction, safe events,
+reconnect, retention, tests, and diagrams.
+
 ## Current status
 
-Phase 7 implements the provider-independent, bounded read-only workflow in both
-manual-loop and explicit LangGraph forms. Deterministic recordings cover success
-and every important stop condition without a live model, and both orchestrators
-produce identical trusted results. The Phase 5 browser and API are unchanged;
-the graph is not yet connected to the UI or persisted. Durable checkpoints,
-recommendations, approval, and booking writes remain later phases.
+Phase 8 makes the provider-independent, bounded read-only LangGraph durable and
+observable. The checkpoint/restart and SSE/reconnect gates run against isolated
+PostgreSQL, while the original Phase 6 manual-loop/Phase 7 graph equivalence
+remains green. Recommendation quality, inventory, approval, and booking writes
+remain later phases.

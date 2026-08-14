@@ -3,10 +3,10 @@
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from operator import add
-from typing import Annotated, Literal, TypedDict, cast
+from typing import Annotated, Any, Literal, TypedDict, cast
 
 from langchain_core.runnables import RunnableConfig
+from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.runtime import Runtime
@@ -77,11 +77,20 @@ class AgentGraphContext:
     clock: Callable[[], datetime] = utc_now
 
 
+def append_node_history(
+    current: tuple[GraphNode, ...] | list[GraphNode],
+    update: tuple[GraphNode, ...] | list[GraphNode],
+) -> tuple[GraphNode, ...]:
+    """Append history while normalizing JSON-decoded sequences to tuples."""
+
+    return (*current, *update)
+
+
 class AgentGraphState(TypedDict):
     """Typed, transient and inspectable state shared by all graph nodes."""
 
     run_state: AgentRunState
-    node_history: Annotated[tuple[GraphNode, ...], add]
+    node_history: Annotated[tuple[GraphNode, ...], append_node_history]
     route: GraphRoute
     pending_decision: AgentDecision | None
     model_error_code: ModelErrorCode | None
@@ -672,13 +681,15 @@ def _add_routes(
     )
 
 
-def build_recovery_graph() -> CompiledStateGraph[
+def build_recovery_graph(
+    checkpointer: BaseCheckpointSaver[Any] | None = None,
+) -> CompiledStateGraph[
     AgentGraphState,
     AgentGraphContext,
     AgentGraphState,
     AgentGraphState,
 ]:
-    """Build the transient Phase 7 graph without a persistence checkpointer."""
+    """Build the Phase 7 graph, optionally with Phase 8 durable checkpoints."""
 
     builder = StateGraph(AgentGraphState, context_schema=AgentGraphContext)
     builder.add_node("intake", intake)
@@ -725,7 +736,7 @@ def build_recovery_graph() -> CompiledStateGraph[
         {"end": END, "safe_failure": "safe_failure"},
     )
     builder.add_edge("safe_failure", END)
-    return builder.compile()
+    return builder.compile(checkpointer=checkpointer)
 
 
 class RecoveryGraphRunner:

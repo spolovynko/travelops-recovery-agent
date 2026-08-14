@@ -756,6 +756,115 @@ code {
 .activity-list small {
   display: block;
 }
+
+.workflow-empty,
+.workflow-activity {
+  display: grid;
+  gap: 1rem;
+}
+
+.workflow-status {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: var(--paper);
+}
+
+.workflow-status div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.workflow-status strong {
+  text-transform: capitalize;
+}
+
+.workflow-status small,
+.workflow-section small {
+  display: block;
+  color: var(--muted);
+}
+
+.workflow-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--focus);
+}
+
+.workflow-completed,
+.workflow-awaiting_information {
+  background: var(--green);
+}
+
+.workflow-failed,
+.workflow-cancelled {
+  background: var(--red);
+}
+
+.durable-steps {
+  max-height: 17rem;
+  overflow: auto;
+}
+
+.workflow-section ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.workflow-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.workflow-metrics div {
+  padding: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+}
+
+.workflow-metrics dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.workflow-metrics dd {
+  margin: 0.2rem 0 0;
+  font-weight: 700;
+}
+
+.workflow-result {
+  margin: 0;
+  padding: 0.75rem;
+  border-left: 3px solid var(--focus);
+  background: var(--paper);
+}
+
+.workflow-failure {
+  border-left-color: var(--red);
+}
+
+.workflow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.button-secondary {
+  background: transparent;
+  color: var(--ink);
+}
+
+.manual-activity {
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
 .activity-list strong {
   font-size: 0.78rem;
 }

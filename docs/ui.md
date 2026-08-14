@@ -149,6 +149,15 @@ The backend should emit versioned, structured events rather than formatted log l
 
 The frontend event reducer must tolerate reconnects, duplicate delivery, missing optional event types, and events that arrive after the operator navigates away.
 
+Phase 8 implements this contract in the recovery workspace. The run ID is a
+`?run=` URL parameter, not local storage. The browser loads the safe run view,
+opens native `EventSource` with that view's sequence as its initial cursor,
+accepts automatic `Last-Event-ID` reconnects, ignores event IDs already seen,
+and refetches the run after every accepted event. A retention-gap event requires
+another snapshot load. The activity panel exposes checkpoints, safe tools,
+evidence counts, retries, cancellation, resume, reconnection, completion, and
+safe failure while leaving manual search and validation intact.
+
 ## Approval interface
 
 The approval screen must show:

@@ -4,6 +4,7 @@ import type {
   ItineraryValidation,
   RecoveryCaseQueue,
   RecoveryCaseWorkspace,
+  WorkflowRun,
 } from "./models";
 
 export class ApiError extends Error {
@@ -80,4 +81,21 @@ export const recoveryApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+  startWorkflow: (caseId: string) =>
+    request<WorkflowRun>(
+      `/api/v1/recovery-cases/${encodeURIComponent(caseId)}/workflow-runs`,
+      { method: "POST" },
+    ),
+  getWorkflow: (runId: string) =>
+    request<WorkflowRun>(`/api/v1/workflow-runs/${encodeURIComponent(runId)}`),
+  cancelWorkflow: (runId: string) =>
+    request<WorkflowRun>(
+      `/api/v1/workflow-runs/${encodeURIComponent(runId)}/cancel`,
+      { method: "POST" },
+    ),
+  resumeWorkflow: (runId: string) =>
+    request<WorkflowRun>(
+      `/api/v1/workflow-runs/${encodeURIComponent(runId)}/resume`,
+      { method: "POST" },
+    ),
 };

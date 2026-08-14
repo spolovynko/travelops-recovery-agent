@@ -1,6 +1,7 @@
 # TravelOps operator dashboard
 
-This directory contains the Phase 5 React and TypeScript operator dashboard.
+This directory contains the Phase 5 operator dashboard plus Phase 8 durable
+workflow progress.
 It is a browser client for the versioned FastAPI recovery endpoints; it does
 not duplicate recovery rules or write booking state.
 
@@ -47,5 +48,7 @@ npm run build
 npm run test:e2e
 ```
 
-The UI workflow and backend boundary are documented with diagrams in
-[`../docs/notes/phase-5.md`](../docs/notes/phase-5.md).
+The manual UI boundary is documented in
+[`../docs/notes/phase-5.md`](../docs/notes/phase-5.md). Durable run URLs, SSE,
+reconnect, cancellation, and refresh behavior are documented in
+[`../docs/notes/phase-8.md`](../docs/notes/phase-8.md).

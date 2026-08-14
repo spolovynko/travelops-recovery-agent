@@ -634,6 +634,180 @@ accidental checkpoint design.
 **Revisit when:** Phase 8 begins and defines thread identifiers, persistence,
 resumption, cancellation, progress events, and duplicate-effect protection.
 
+## D-036 — Use the official PostgreSQL LangGraph checkpointer
+
+**Status:** Accepted
+
+**Context:** Phase 8 must survive process loss and preserve completed graph
+boundaries. The project already depends on PostgreSQL and psycopg.
+
+**Decision:** Lock `langgraph-checkpoint-postgres>=3,<4`, compile the existing
+graph with `PostgresSaver`, run its supported setup migration, and use a strict
+TravelOps deserialization allowlist.
+
+**Alternatives:** In-memory or SQLite savers, copied saver tables, a custom
+checkpointer, or hosted LangGraph services.
+
+**Consequences:** Checkpoints survive restarts without another infrastructure
+system. Saver table history remains owned by the supported package.
+
+**Revisit when:** Deployment constraints require another supported backend.
+
+## D-037 — Isolate execution persistence in a workflow schema
+
+**Status:** Accepted
+
+**Context:** Business truth, execution progress, and UI activity have different
+meaning and retention.
+
+**Decision:** Keep airline tables in `public`; place workflow runs, safe events,
+and saver tables in `workflow`.
+
+**Alternatives:** Put all tables in public, use another database, or treat
+checkpoints as recovery-case records.
+
+**Consequences:** Schema inspection and lifecycle policy cannot silently confuse
+business facts with orchestration state.
+
+**Revisit when:** Separate database credentials become operationally necessary.
+
+## D-038 — Give each workflow run one distinct internal thread ID
+
+**Status:** Accepted
+
+**Context:** A recovery case can have historical investigations while LangGraph
+requires a stable checkpoint thread.
+
+**Decision:** Generate opaque run and thread IDs separately. Keep a one-to-one
+run/thread mapping and a many-to-one historical run/case mapping.
+
+**Alternatives:** Reuse case ID as thread ID or expose thread ID as the public run
+identity.
+
+**Consequences:** Domain and framework identity remain decoupled.
+
+**Revisit when:** A deliberate multi-session thread design is introduced.
+
+## D-039 — Resume only the latest checkpoint with no fresh initial input
+
+**Status:** Accepted
+
+**Context:** Passing initial state on resume risks restarting completed work.
+
+**Decision:** Resume the same thread with `None` input after reconstructing
+runtime context. Reject terminal and concurrently leased resumes.
+
+**Alternatives:** Rebuild state from events, replay from the beginning, or expose
+arbitrary checkpoint time travel through the operator API.
+
+**Consequences:** Normal resumption follows the recorded next node and does not
+repeat a committed tool boundary.
+
+**Revisit when:** Diagnostic time travel receives its own safe API.
+
+## D-040 — Prevent duplicate active runs with both an index and a lease
+
+**Status:** Accepted
+
+**Context:** HTTP retries and multiple backend processes can race.
+
+**Decision:** Use a partial unique case index for active lifecycle values and an
+expiring row lease with a unique owner per execution attempt.
+
+**Alternatives:** Process-local locks, frontend button disabling, or an external
+queue.
+
+**Consequences:** Database constraints remain authoritative after process loss.
+
+**Revisit when:** A distributed task queue is justified by measured load.
+
+## D-041 — Make cancellation cooperative at graph boundaries
+
+**Status:** Accepted
+
+**Context:** Phase 7 model and database adapters are synchronous.
+
+**Decision:** Persist an idempotent cancellation request and observe it before
+each next node. State explicitly that an executing synchronous call may return
+before cancellation completes.
+
+**Alternatives:** Unsafe thread termination or falsely claim immediate cancel.
+
+**Consequences:** Cancellation is predictable and does not corrupt checkpoints.
+
+**Revisit when:** Dependencies offer reviewed cancellable async operations.
+
+## D-042 — Persist only ordered safe UI events with bounded retention
+
+**Status:** Accepted
+
+**Context:** Operators need progress, but logs and checkpoints are unsafe UI
+contracts and permanent business audit is out of scope.
+
+**Decision:** Store versioned per-run events with monotonic sequences, recursive
+sensitive-field rejection, bounded replay batches, and seven-day retention.
+
+**Alternatives:** Stream logs, stream raw graph updates, or retain an unbounded
+audit history.
+
+**Consequences:** The UI gets stable activity without exposing prompts,
+arguments, passenger rows, SQL, credentials, or internal exceptions.
+
+**Revisit when:** A separately governed business audit system is designed.
+
+## D-043 — Reconnect SSE from a snapshot-owned cursor
+
+**Status:** Accepted
+
+**Context:** Browsers disconnect, refresh, and automatically resend
+`Last-Event-ID`.
+
+**Decision:** Load the authoritative run first, stream after its sequence,
+support `Last-Event-ID`, deduplicate IDs in React, and require snapshot reset when
+retention creates a gap.
+
+**Alternatives:** WebSockets, browser-only event state, or full replay on every
+connection.
+
+**Consequences:** Refresh and reconnect recover missed activity without treating
+events as the workflow source of truth.
+
+**Revisit when:** Bidirectional low-latency communication is required.
+
+## D-044 — Reconstruct runtime context through application factories
+
+**Status:** Accepted
+
+**Context:** Checkpoints must not contain executable dependencies or secrets.
+
+**Decision:** Rebuild provider adapters, the dispatcher, read-only tools, units
+of work, actor, and clock for each claimed execution from stable configuration.
+
+**Alternatives:** Serialize context, use globals, or store session objects in
+graph state.
+
+**Consequences:** Restart tests dispose original runtime objects and resume from
+stable identifiers alone.
+
+**Revisit when:** A dependency version must become explicit safe run metadata.
+
+## D-045 — Keep read-only fingerprinted tools as the Phase 8 idempotency boundary
+
+**Status:** Accepted
+
+**Context:** Cross-system exactly-once execution is not supplied by checkpoints.
+
+**Decision:** Permit only Phase 4 reads, retain call fingerprints in trusted
+state, and add no automatic retry of non-idempotent work.
+
+**Alternatives:** Assume checkpointing makes every tool exactly once or introduce
+booking writes before effect-level idempotency exists.
+
+**Consequences:** Normal resume does not repeat committed tool calls, and hard
+failure during an in-flight call has bounded read-only consequences.
+
+**Revisit when:** Phase 10 adds an effect ledger and idempotency keys.
+
 ## Decision template
 
 ```markdown

@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ApiError, recoveryApi } from "../../api/client";
 import type {
   AlternativeCandidate,
@@ -9,6 +9,7 @@ import type {
 } from "../../api/models";
 import { ErrorState, LoadingState } from "../../components/AsyncState";
 import { StatusBadge } from "../../components/StatusBadge";
+import { WorkflowActivity } from "./WorkflowActivity";
 
 const exactDate = (value: string) =>
   new Intl.DateTimeFormat("en-GB", {
@@ -69,6 +70,8 @@ function NotFound({ caseId }: { caseId: string }) {
 }
 
 function Workspace({ data }: { data: RecoveryCaseWorkspace }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const workflowRunId = searchParams.get("run");
   const defaults = data.search_defaults;
   const [earliest, setEarliest] = useState(defaults.earliest_departure);
   const [latest, setLatest] = useState(defaults.latest_arrival);
@@ -224,40 +227,52 @@ function Workspace({ data }: { data: RecoveryCaseWorkspace }) {
             number="04"
             title="Activity"
             id="activity-heading"
-            subtitle="Manual actions in this browser session"
+            subtitle="Durable LangGraph investigation"
           />
-          <ol className="activity-list">
-            <li className="done">
-              <span>✓</span>
-              <div>
-                <strong>Case facts loaded</strong>
-                <small>Authoritative data refreshed from FastAPI</small>
-              </div>
-            </li>
-            <li className={search.data ? "done" : "current"}>
-              <span>{search.data ? "✓" : "2"}</span>
-              <div>
-                <strong>Alternative search</strong>
-                <small>
-                  {search.data
-                    ? `${search.data.candidates.length} candidate(s) returned`
-                    : "Waiting for operator input"}
-                </small>
-              </div>
-            </li>
-            <li className={Object.keys(validations).length ? "done" : ""}>
-              <span>{Object.keys(validations).length ? "✓" : "3"}</span>
-              <div>
-                <strong>Candidate validation</strong>
-                <small>Deterministic rules remain server-owned</small>
-              </div>
-            </li>
-          </ol>
+          <WorkflowActivity
+            caseId={data.case_id}
+            runId={workflowRunId}
+            onRunSelected={(runId) => {
+              const next = new URLSearchParams(searchParams);
+              next.set("run", runId);
+              setSearchParams(next, { replace: true });
+            }}
+          />
+          <div className="manual-activity">
+            <strong>Manual workspace</strong>
+            <ol className="activity-list">
+              <li className="done">
+                <span>✓</span>
+                <div>
+                  <strong>Case facts loaded</strong>
+                  <small>Authoritative data refreshed from FastAPI</small>
+                </div>
+              </li>
+              <li className={search.data ? "done" : "current"}>
+                <span>{search.data ? "✓" : "2"}</span>
+                <div>
+                  <strong>Alternative search</strong>
+                  <small>
+                    {search.data
+                      ? `${search.data.candidates.length} candidate(s) returned`
+                      : "Waiting for operator input"}
+                  </small>
+                </div>
+              </li>
+              <li className={Object.keys(validations).length ? "done" : ""}>
+                <span>{Object.keys(validations).length ? "✓" : "3"}</span>
+                <div>
+                  <strong>Candidate validation</strong>
+                  <small>Deterministic rules remain server-owned</small>
+                </div>
+              </li>
+            </ol>
+          </div>
           <div className="phase-boundary">
-            <strong>Phase 5 boundary</strong>
+            <strong>Phase 8 boundary</strong>
             <p>
-              No agent, recommendation, booking write, seat claim or approval
-              occurs here.
+              Durable investigation remains read-only. No recommendation,
+              booking write, seat claim or approval occurs here.
             </p>
           </div>
         </aside>
